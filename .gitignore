@@ -1,0 +1,14 @@
+# Ignore Mac DS_Store files
+.DS_Store
+**/.DS_Store
+__pycache__/
+*.py[cod]
+*$py.class
+**/.ipynb_checkpoints
+.ipynb_checkpoints
+# poetry.lock
+scripts/runs/*
+scripts/videos/*
+scripts/wandb/*
+scripts/trained-models/*
+# scripts/torch_backend/results/
