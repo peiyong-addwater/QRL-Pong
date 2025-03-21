@@ -12,3 +12,4 @@ scripts/videos/*
 scripts/wandb/*
 scripts/trained-models/*
 # scripts/torch_backend/results/
+.vscode/*
