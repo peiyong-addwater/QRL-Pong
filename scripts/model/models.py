@@ -80,6 +80,7 @@ class Backbone(nn.Module):
 class Placeholder4VQC(nn.Module):
     """
     A placeholder linear layer to replace the VQC system.
+    With sinusoidal activation function.
     """
     def __init__(self, in_out_dim, n_layers=None):
         super().__init__()
@@ -90,6 +91,52 @@ class Placeholder4VQC(nn.Module):
         
     def forward(self, x):
         return self.placeholder(x)
+
+class Placeholder4VQCSineless(nn.Module):
+    """
+    A placeholder linear layer to replace the VQC system.
+    Without sinusoidal activation function.
+    """
+    def __init__(self, in_out_dim, n_layers=None):
+        super().__init__()
+        self.placeholder = nn.Sequential(
+            layer_init(nn.Linear(in_out_dim, in_out_dim, bias=False))
+        )
+        
+    def forward(self, x):
+        return self.placeholder(x)
+
+class ClassicalPPOAgentWithPlaceholderSineless(nn.Module):
+    def __init__(self, envs, n_layers=None, backbone_out_dim = 30, backbone = None , pretrained_backbone = False):
+        super().__init__()
+        n_actions = envs.single_action_space.n
+        assert backbone is not None, "backbone is not provided"
+        assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
+        assert pretrained_backbone == False, "pretrained_backbone is not supported"
+        self.circ_qubits = math.ceil(backbone_out_dim/3)
+        self.circ_out_dim = self.circ_qubits * 3
+        if not pretrained_backbone:
+            self.backbone = backbone
+        else:
+            with torch.no_grad():
+                self.backbone = backbone
+        self.actor = nn.Sequential(
+            Placeholder4VQCSineless(backbone_out_dim, n_layers),
+            layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
+            )
+        self.critic = layer_init(nn.Linear(backbone_out_dim, 1), std=1)
+    
+    def get_value(self, x):
+        return self.critic(self.backbone(x/255.0))
+
+    def get_action_and_value(self, x, action=None):
+        hidden = self.backbone(x/255.0)
+        logits = self.actor(hidden)
+        probs = Categorical(logits=logits)
+        if action is None:
+            action = probs.sample()
+        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+
 
 class ClassicalPPOAgentWithPlaceholder(nn.Module):
     def __init__(self, envs, n_layers=None, backbone_out_dim = 30, backbone = None , pretrained_backbone = False):

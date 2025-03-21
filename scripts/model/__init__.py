@@ -1,1 +1,1 @@
-from .models import ClassicalPPOAgentWithPlaceholder, EntangledPPOAgent, SeparablePPOAgent, Backbone
+from .models import ClassicalPPOAgentWithPlaceholder, EntangledPPOAgent, SeparablePPOAgent, Backbone, ClassicalPPOAgentWithPlaceholderSineless
