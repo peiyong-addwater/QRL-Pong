@@ -93,7 +93,7 @@ class Args:
 
     # Miscellaneous
     backbone_save_path: str = None 
-    """the path to save the backbone network. If None, defaults to '"trained-models/classical_backbone_(sineless)_{env_id}_latent_{backbone_out_dim}_{seed}.pt"'"""
+    """the path to save the backbone network. If None, defaults to '"trained-models/classical_backbone_(sineless)_{env_id}_latent_{backbone_out_dim}_seed_{seed}.pt"'"""
 
     # to be filled in runtime
     batch_size: int = 0
@@ -130,7 +130,9 @@ if __name__ == "__main__":
     args = tyro.cli(Args)
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
     if args.backbone_save_path is None:
-        args.backbone_save_path =  f"trained-models/classical_backbone_(sineless)_{args.env_id}_latent_dim_{args.backbone_out_dim}_{args.seed}.pt"
+        if not os.path.exists("trained-models"):
+            os.makedirs("trained-models")
+        args.backbone_save_path =  f"trained-models/classical_backbone_(sineless)_{args.env_id}_latent_dim_{args.backbone_out_dim}_seed_{args.seed}.pt"
     args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
     args.wandb_project_name = f"{args.env_id}__Dim__{args.backbone_out_dim}"
     args.batch_size = int(args.num_envs * args.num_steps)
@@ -334,11 +336,9 @@ if __name__ == "__main__":
         print("SPS:", int(global_step / (time.time() - start_time)))
         writer.add_scalar("2-Training-Stats/SPS", int(global_step / (time.time() - start_time)), global_step)
     # save the model
-    # check whether the path exists, if not, create it
-    if args.backbone_save_path is None:
-        if not os.path.exists("trained-models"):
-            os.makedirs("trained-models")
     backbone = agent.get_backbone()
+    print("The classical backbone network has been trained.")
+    print("The backbone network is:\n", backbone)
     torch.save(backbone.state_dict(), args.backbone_save_path)
     print("The classical backbone network has been saved to", args.backbone_save_path)
     envs.close()
