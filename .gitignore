@@ -11,5 +11,7 @@ scripts/runs/*
 scripts/videos/*
 scripts/wandb/*
 scripts/trained-models/*
+scripts/legacy/*
 # scripts/torch_backend/results/
 .vscode/*
+legacy_files/*

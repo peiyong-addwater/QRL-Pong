@@ -136,6 +136,9 @@ class ClassicalPPOAgentWithPlaceholderSineless(nn.Module):
         if action is None:
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+    
+    def get_backbone(self):
+        return self.backbone
 
 
 class ClassicalPPOAgentWithPlaceholder(nn.Module):
@@ -168,6 +171,9 @@ class ClassicalPPOAgentWithPlaceholder(nn.Module):
         if action is None:
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+    
+    def get_backbone(self):
+        return self.backbone
 
 def make_separable_vqc_sys(n_layers, n_qubits)->callable:
     """

@@ -334,8 +334,11 @@ if __name__ == "__main__":
         writer.add_scalar("2-Training-Stats/SPS", int(global_step / (time.time() - start_time)), global_step)
     # save the model
     # check whether the path exists, if not, create it
-    if not os.path.exists("trained-models"):
-        os.makedirs("trained-models")
-    torch.save(agent.state_dict(), f"trained-models/{run_name}.pt")
+    if args.backbone_save_path is None:
+        if not os.path.exists("trained-models"):
+            os.makedirs("trained-models")
+    backbone = agent.get_backbone()
+    torch.save(backbone.state_dict(), args.backbone_save_path)
+    print("The classical backbone network has been saved to:", args.backbone_save_path)
     envs.close()
     writer.close()
