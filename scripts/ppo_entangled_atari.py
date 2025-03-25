@@ -177,9 +177,10 @@ if __name__ == "__main__":
 
     # Load the pretrained backbone
     if args.pretrained_backbone_path:
-        with torch.no_grad():
-            backbone = Backbone(out_dim=args.backbone_out_dim)
-            backbone.load_state_dict(torch.load(args.pretrained_backbone_path))
+        backbone = Backbone(out_dim=args.backbone_out_dim)
+        backbone.load_state_dict(torch.load(args.pretrained_backbone_path))
+        for param in backbone.parameters():
+            param.requires_grad = False
         agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=backbone, pretrained_backbone=True).to(device)
     else:
         backbone = Backbone(out_dim=args.backbone_out_dim)

@@ -176,7 +176,16 @@ if __name__ == "__main__":
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim).to(device)
+    # Load the pretrained backbone
+    if args.pretrained_backbone_path:
+        backbone = Backbone(out_dim=args.backbone_out_dim)
+        backbone.load_state_dict(torch.load(args.pretrained_backbone_path))
+        for param in backbone.parameters():
+            param.requires_grad = False
+        agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=backbone, pretrained_backbone=True).to(device)
+    else:
+        backbone = Backbone(out_dim=args.backbone_out_dim)
+        agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone=backbone).to(device)
     print(agent)
 
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)

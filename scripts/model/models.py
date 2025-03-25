@@ -252,8 +252,9 @@ class SeparablePPOAgent(nn.Module):
         if not pretrained_backbone:
             self.backbone = backbone
         else:
-            with torch.no_grad():
-                self.backbone = backbone
+            self.backbone = backbone
+            for param in self.backbone.parameters():
+                param.requires_grad = False
         self.actor = nn.Sequential(
             SeparableVQC(backbone_out_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
@@ -356,8 +357,9 @@ class EntangledPPOAgent(nn.Module):
         if not pretrained_backbone:
             self.backbone = backbone
         else:
-            with torch.no_grad():
-                self.backbone = backbone
+            self.backbone = backbone
+            for param in self.backbone.parameters():
+                param.requires_grad = False
         self.actor = nn.Sequential(
             EntangledVQC(backbone_out_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
