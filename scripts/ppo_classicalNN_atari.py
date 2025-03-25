@@ -42,16 +42,16 @@ class Args:
     """if toggled, cuda will be enabled by default"""
     track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
-    wandb_project_name: str = f"QRL-Pong-{n_latent_dim}-Dim"
-    """the wandb's project name"""
+    #wandb_project_name: str = f"QRL-Pong-{n_latent_dim}-Dim"
+    #"""the wandb's project name"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
     capture_video: bool = True
     """whether to capture videos of the agent performances (check out `videos` folder)"""
 
     # Agent specific arguments
-    n_layers: int = int(n_latent_dim**2/(n_latent_dim/3*3)) # does not matter for classical NN
-    """the number of data re-uploading layers in the quantum circuit"""
+    # n_layers: int = int(n_latent_dim**2/(n_latent_dim/3*3)) # does not matter for classical NN
+    # """the number of data re-uploading layers in the quantum circuit"""
     backbone_out_dim: int = n_latent_dim
     """the output dimension of the backbone network"""
 
@@ -91,6 +91,9 @@ class Args:
     target_kl: float = None
     """the target KL divergence threshold"""
 
+    # Miscellaneous
+    backbone_save_path: str = None 
+    """the path to save the backbone network. If None, defaults to '"trained-models/classical_backbone_(sine_activation)_{env_id}_latent_{backbone_out_dim}_{seed}.pt"'"""
     # to be filled in runtime
     batch_size: int = 0
     """the batch size (computed in runtime)"""
@@ -124,10 +127,15 @@ def make_env(env_id, idx, capture_video, run_name):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
+    assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
+    if args.backbone_save_path is None:
+        args.backbone_save_path =  f"trained-models/classical_backbone_(sine_activation)_{args.env_id}_latent_dim_{args.backbone_out_dim}_{args.seed}.pt"
+    args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
+    args.wandb_project_name = f"{args.env_id}__Dim__{args.backbone_out_dim}"
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    run_name = f"{args.wandb_project_name}__{args.exp_name}__{args.env_id}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.env_id}__{args.seed}__{int(time.time())}"
     print(args)
     if args.track:
         import wandb

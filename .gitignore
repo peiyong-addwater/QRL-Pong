@@ -8,8 +8,8 @@ __pycache__/
 .ipynb_checkpoints
 # poetry.lock
 scripts/runs/*
-# scripts/videos/*
+scripts/videos/*
 scripts/wandb/*
-# scripts/trained-models/*
+scripts/trained-models/*
 # scripts/torch_backend/results/
 .vscode/*
