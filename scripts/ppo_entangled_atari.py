@@ -43,16 +43,16 @@ class Args:
     """if toggled, cuda will be enabled by default"""
     track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
-    wandb_project_name: str = f"QRL-Pong-{n_latent_dim}-Dim"
-    """the wandb's project name"""
+    #wandb_project_name: str = f"QRL-Pong-{n_latent_dim}-Dim"
+    #"""the wandb's project name"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
     capture_video: bool = True
     """whether to capture videos of the agent performances (check out `videos` folder)"""
 
     # Agent specific arguments
-    n_layers: int = int(n_latent_dim**2/(n_latent_dim/3*3))
-    """the number of data re-uploading layers in the quantum circuit"""
+    #n_layers: int = int(n_latent_dim**2/(n_latent_dim/3*3))
+    #"""the number of data re-uploading layers in the quantum circuit"""
     backbone_out_dim: int = n_latent_dim
     """the output dimension of the backbone network"""
 
@@ -92,6 +92,12 @@ class Args:
     target_kl: float = None
     """the target KL divergence threshold"""
 
+    # pretrained backbone path
+    pretrained_backbone_path: str = None
+    """the path to the pretrained backbone model"""
+    # model save path
+    model_save_path: str = None
+    """the path to save the model"""
     # to be filled in runtime
     batch_size: int = 0
     """the batch size (computed in runtime)"""
@@ -125,10 +131,17 @@ def make_env(env_id, idx, capture_video, run_name):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
+    assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
+    args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
+    args.wandb_project_name = f"{args.env_id}__Dim__{args.backbone_out_dim}"
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    run_name = f"{args.wandb_project_name}__{args.exp_name}__{args.env_id}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.env_id}__{args.seed}__{int(time.time())}"
+    if args.model_save_path is None:
+        if not os.path.exists("trained-models"):
+            os.makedirs("trained-models")
+        args.model_save_path = f"trained-models/{run_name}.pt"
     print(args)
     if args.track:
         import wandb
@@ -162,7 +175,15 @@ if __name__ == "__main__":
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim).to(device)
+    # Load the pretrained backbone
+    if args.pretrained_backbone_path:
+        with torch.no_grad():
+            backbone = Backbone(out_dim=args.backbone_out_dim)
+            backbone.load_state_dict(torch.load(args.pretrained_backbone_path))
+        agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=backbone, pretrained_backbone=True).to(device)
+    else:
+        backbone = Backbone(out_dim=args.backbone_out_dim)
+        agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone=backbone).to(device)
     print(agent)
 
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
@@ -324,9 +345,6 @@ if __name__ == "__main__":
         print("SPS:", int(global_step / (time.time() - start_time)))
         writer.add_scalar("2-Training-Stats/SPS", int(global_step / (time.time() - start_time)), global_step)
     # save the model
-    # check whether the path exists, if not, create it
-    if not os.path.exists("trained-models"):
-        os.makedirs("trained-models")
-    torch.save(agent.state_dict(), f"trained-models/{run_name}.pt")
+    torch.save(agent.state_dict(), args.model_save_path)
     envs.close()
     writer.close()
