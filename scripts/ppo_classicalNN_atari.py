@@ -310,11 +310,14 @@ if __name__ == "__main__":
 
                 entropy_loss = entropy.mean()
                 loss = pg_loss - args.ent_coef * entropy_loss + v_loss * args.vf_coef
-
+                #old_param = agent.state_dict()['backbone.network.7.weight']
+                #print("old_param:", old_param)
                 optimizer.zero_grad()
                 loss.backward()
                 nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
                 optimizer.step()
+                #new_param = agent.state_dict()['backbone.network.7.weight']
+                #print("new_param:", new_param)
 
             if args.target_kl is not None and approx_kl > args.target_kl:
                 break

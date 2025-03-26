@@ -15,3 +15,6 @@ scripts/legacy/*
 # scripts/torch_backend/results/
 .vscode/*
 legacy_files/*
+wandb/*
+runs/*
+videos/*
