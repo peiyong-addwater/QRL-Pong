@@ -327,6 +327,9 @@ if __name__ == "__main__":
                 nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
                 optimizer.step()
 
+                # clip the paraemeters of the vqc layer
+                agent.state_dict()["actor.0.q_params"].data.clamp_(-np.pi, np.pi)
+
             if args.target_kl is not None and approx_kl > args.target_kl:
                 break
 
