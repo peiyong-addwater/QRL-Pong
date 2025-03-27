@@ -132,6 +132,7 @@ def make_env(env_id, idx, capture_video, run_name):
 if __name__ == "__main__":
     args = tyro.cli(Args)
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
+    assert args.pretrained_backbone_path is None, "This script runs from scratch, pretrained_backbone_path must be None"
     args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
     args.wandb_project_name = f"{args.env_id}__Dim__{args.backbone_out_dim}"
     args.batch_size = int(args.num_envs * args.num_steps)
