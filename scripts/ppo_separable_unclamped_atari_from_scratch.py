@@ -332,8 +332,6 @@ if __name__ == "__main__":
                 #new_param = agent.state_dict()['backbone.network.7.weight']
                 #print("new_param:", new_param)
 
-                # clip the paraemeters of the vqc layer
-                agent.state_dict()["actor.0.q_params"].data.clamp_(-np.pi, np.pi)
 
             if args.target_kl is not None and approx_kl > args.target_kl:
                 break
