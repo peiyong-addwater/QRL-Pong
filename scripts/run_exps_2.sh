@@ -1,5 +1,0 @@
-python ppo_separable_atari_unclamped_param.py --pretrained_backbone_path "/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/classical_backbone_(sine_activation)_PongNoFrameskip-v4_latent_dim_12_seed_1.pt"
-python ppo_entangled_atari_unclampled_param.py --pretrained_backbone_path "/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/classical_backbone_(sine_activation)_PongNoFrameskip-v4_latent_dim_12_seed_1.pt"
-
-python ppo_separable_atari_from_scratch.py
-python ppo_entangled_atari_from_scratch.py
