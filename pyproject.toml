@@ -16,6 +16,12 @@ pennylane = "^0.40.0"
 gymnasium = {extras = ["all"], version = "^1.1.1"}
 ale-py = "^0.10.2"
 wandb = {extras = ["media"], version = "^0.19.8"}
+jax = {extras = ["cuda12"], version = "^0.5.3"}
+flax = "^0.10.5"
+multi-agent-ale-py = "^0.1.11"
+pettingzoo = "^1.24.3"
+supersuit = "^3.9.3"
+autorom = "^0.6.1"
 
 
 
