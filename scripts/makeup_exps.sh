@@ -1,3 +1,0 @@
-python ppo_separable_sineless_backbone_atari.py --env_id PongNoFrameskip-v4 --backbone_out_dim 18 --pretrained_backbone_path "/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/classical_backbone_(sineless)_PongNoFrameskip-v4_latent_dim_18_seed_1.pt"
-
-python ppo_entangled_unclamped_atari_from_scratch.py --backbone_out_dim 18 --env_id PongNoFrameskip-v4
