@@ -3,12 +3,12 @@ revision = 2
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "python_full_version >= '3.13' and platform_machine != 'aarch64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "python_full_version >= '3.13' and platform_machine != 'aarch64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine != 'aarch64' and sys_platform == 'linux'",
     "python_full_version >= '3.13' and sys_platform == 'darwin'",
-    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
     "python_full_version < '3.13' and sys_platform == 'darwin'",
+    "python_full_version >= '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
     "python_full_version < '3.13' and sys_platform != 'darwin' and sys_platform != 'linux'",
 ]
 
@@ -1585,6 +1585,7 @@ dependencies = [
     { name = "multi-agent-ale-py" },
     { name = "pennylane" },
     { name = "pettingzoo" },
+    { name = "pygame" },
     { name = "skrl" },
     { name = "supersuit" },
     { name = "torch" },
@@ -1604,6 +1605,7 @@ requires-dist = [
     { name = "multi-agent-ale-py", specifier = ">=0.1.11" },
     { name = "pennylane", specifier = ">=0.41.0" },
     { name = "pettingzoo", specifier = ">=1.24.3" },
+    { name = "pygame", specifier = ">=2.6.1" },
     { name = "skrl", specifier = ">=1.4.3" },
     { name = "supersuit", specifier = ">=3.9.3" },
     { name = "torch", specifier = ">=2.6.0" },

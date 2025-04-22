@@ -13,6 +13,7 @@ dependencies = [
     "multi-agent-ale-py>=0.1.11",
     "pennylane>=0.41.0",
     "pettingzoo>=1.24.3",
+    "pygame>=2.6.1",
     "skrl>=1.4.3",
     "supersuit>=3.9.3",
     "torch>=2.6.0",
