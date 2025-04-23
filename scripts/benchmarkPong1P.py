@@ -24,8 +24,39 @@ def run_experiment(command: str):
     return output.decode("utf-8").strip()
 
 command_list = [
+    # from scratch
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights",
+    # from sineless actor pretrained
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
+    # from sine actor pretrained
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
 ]
+
+if __name__ == "__main__":
+    from concurrent.futures import ThreadPoolExecutor
+
+    n_workers = len(command_list) if len(command_list) < 30 else 30
+
+    print("======= commands to run:")
+    for command in command_list:
+        print(command)
+    print("======= number of workers: ", n_workers)
+    print("======= number of commands: ", len(command_list))
+
+    executor = ThreadPoolExecutor(max_workers=n_workers, thread_name_prefix="Pong1P-worker-")
+
+    for command in command_list:
+        executor.submit(run_experiment, command)
+    executor.shutdown(wait=True)
+    print("======= all commands finished")
+
+
