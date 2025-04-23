@@ -380,7 +380,7 @@ if __name__ == "__main__":
         writer.add_scalar("1-Training-Losses/value_loss", v_loss.item(), global_step)
         writer.add_scalar("1-Training-Losses/policy_loss", pg_loss.item(), global_step)
         writer.add_scalar("1-Training-Losses/entropy", entropy_loss.item(), global_step)
-        writer.add_scalar("1-Training-Losses/old_approx_kl", old_approx_kl.item(), global_step)
+        # writer.add_scalar("1-Training-Losses/old_approx_kl", old_approx_kl.item(), global_step)
         writer.add_scalar("1-Training-Losses/approx_kl", approx_kl.item(), global_step)
         writer.add_scalar("1-Training-Losses/clipfrac", np.mean(clipfracs), global_step)
         writer.add_scalar("1-Training-Losses/explained_variance", explained_var, global_step)
