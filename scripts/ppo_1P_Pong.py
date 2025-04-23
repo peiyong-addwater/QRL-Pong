@@ -167,7 +167,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1P__Dim__{args.backbone_out_dim}"
 
-    run_name = f"Pong1P_{args.agent_type}_{"fromScratch" if args.from_scratch else args.backbone_type+"PretrainedBackbone"}{"_actorWeightsClamped" if args.clamp_actor_weights else ""}_seed_{args.seed}"
+    run_name = f"Pong1P_{args.agent_type}_{"fromScratch" if args.from_scratch else args.backbone_type+"PretrainedBackbone"}{"_actorWeightsClamped" if args.clamp_actor_weights else ""}_seed_{args.seed}__{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):

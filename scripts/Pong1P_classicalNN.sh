@@ -1,0 +1,2 @@
+uv run ppo_1P_Pong.py --agent_type "classicalNNSineActor" --from_scratch --no-clamp-actor-weights --backbone_out_dim 12 &
+uv run ppo_1P_Pong.py --agent_type "classicalNNSinelessActor" --from_scratch --no-clamp-actor-weights --backbone_out_dim 12
