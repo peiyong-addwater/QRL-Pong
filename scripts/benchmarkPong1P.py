@@ -23,7 +23,7 @@ def run_experiment(command: str):
     # Convert bytes to string and strip leading/trailing whitespaces
     return output.decode("utf-8").strip()
 
-commands = [
+command_list = [
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --clamp_actor_weights",
