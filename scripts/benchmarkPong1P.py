@@ -25,20 +25,22 @@ def run_experiment(command: str):
 
 command_list = [
     # from scratch
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --clamp_actor_weights",
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --clamp_actor_weights",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights",
+    # "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --clamp_actor_weights",
+    # "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights",
+    # "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --clamp_actor_weights",
+    # "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights",
+
     # from sineless actor pretrained
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt' --backbone_type 'sinelessActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'  --backbone_type 'sinelessActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'  --backbone_type 'sinelessActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights  --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSinelessActor_fromScratch_seed_1__1745382939.pt'  --backbone_type 'sinelessActor'",
+    
     # from sine actor pretrained
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
-    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt' --backbone_type 'sineActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt' --backbone_type 'sineActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt' --backbone_type 'sineActor'",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --no-from_scratch --no-clamp_actor_weights --pretrained_backbone_path '/home/wan455/Desktop/Projects/QRL-Pong/scripts/trained-models/Pong1P_classicalNNSineActor_fromScratch_seed_1__1745382939.pt' --backbone_type 'sineActor'",
 ]
 
 if __name__ == "__main__":

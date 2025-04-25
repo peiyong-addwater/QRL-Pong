@@ -210,9 +210,20 @@ if __name__ == "__main__":
 
     # load pretrained backbone
     if not args.from_scratch:
-        backbone = Backbone(out_dim=args.backbone_out_dim)
-        backbone.load_state_dict(torch.load(args.pretrained_backbone_path))
-        print(f"Loaded pretrained backbone from {args.pretrained_backbone_path}")
+        if args.backbone_type == "sineActor":
+            trained_agent = ClassicalPPOAgentWithPlaceholder(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=Backbone(out_dim=args.backbone_out_dim), pretrained_backbone=False)
+            trained_agent.load_state_dict(torch.load(args.pretrained_backbone_path))
+            print(f"Loaded pretrained backbone from {args.pretrained_backbone_path}")
+            # extract the backbone
+            backbone = trained_agent.backbone
+        elif args.backbone_type == "sinelessActor":
+            trained_agent = ClassicalPPOAgentWithPlaceholderSineless(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=Backbone(out_dim=args.backbone_out_dim), pretrained_backbone=False)
+            trained_agent.load_state_dict(torch.load(args.pretrained_backbone_path))
+            print(f"Loaded pretrained backbone from {args.pretrained_backbone_path}")
+            # extract the backbone
+            backbone = trained_agent.backbone
+        else:
+            raise ValueError("backbone_type must be one of ['sineActor', 'sinelessActor']")
         agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=backbone, pretrained_backbone=True).to(device)
     else:
         backbone = Backbone(out_dim=args.backbone_out_dim)
