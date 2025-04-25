@@ -118,8 +118,9 @@ class ClassicalPPOAgentWithPlaceholderSineless(nn.Module):
         if not pretrained_backbone:
             self.backbone = backbone
         else:
-            with torch.no_grad():
-                self.backbone = backbone
+            self.backbone = backbone
+            for param in self.backbone.parameters():
+                param.requires_grad = False
         self.actor = nn.Sequential(
             Placeholder4VQCSineless(backbone_out_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
@@ -153,8 +154,9 @@ class ClassicalPPOAgentWithPlaceholder(nn.Module):
         if not pretrained_backbone:
             self.backbone = backbone
         else:
-            with torch.no_grad():
-                self.backbone = backbone
+            self.backbone = backbone
+            for param in self.backbone.parameters():
+                param.requires_grad = False
         self.actor = nn.Sequential(
             Placeholder4VQC(backbone_out_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
