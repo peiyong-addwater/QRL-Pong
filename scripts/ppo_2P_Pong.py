@@ -151,6 +151,23 @@ if __name__ == "__main__":
     optimizerE = optim.Adam(entangledAgent.parameters(), lr=args.learning_rate, eps=1e-5)
 
     # ALGO Logic: Storage setup
+    ## storage for the separable agent
+    obs_sep = torch.zeros((args.num_steps, args.num_envs) + env.single_observation_space.shape).to(device)
+    actions_sep = torch.zeros((args.num_steps, args.num_envs) + env.single_action_space.shape).to(device)
+    logprobs_sep = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    rewards_sep = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    dones_sep = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    values_sep = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    # storage for the entangled agent
+    obs_ent = torch.zeros((args.num_steps, args.num_envs) + env.single_observation_space.shape).to(device)
+    actions_ent = torch.zeros((args.num_steps, args.num_envs) + env.single_action_space.shape).to(device)
+    logprobs_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    rewards_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    dones_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    values_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
+
+    # Start the game
+    
 
 
 

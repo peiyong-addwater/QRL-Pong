@@ -20,9 +20,11 @@ print(env.single_action_space.n)
 #print(env.observation_space('second_0'))
 #print(env.action_space('second_0'))
 env.is_vector_env = True
-observations, infos = env.reset()
+observations, infos = env.reset(seed=0)
+print(observations)
+print(infos)
 #print(env.agents)
-print(env.action_space)
+#print(env.action_space)
 while env.agents:
     # this is where you would insert your policy
     actions = {agent: env.action_space(agent).sample() for agent in env.agents}
