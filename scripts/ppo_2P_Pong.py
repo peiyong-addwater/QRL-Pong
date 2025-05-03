@@ -249,7 +249,53 @@ if __name__ == "__main__":
             print(f"Iteration={iteration}, SepAgent episodic return={total_episodic_return['first_0']}, EntAgent episodic return={total_episodic_return['second_0']}")
             writer.add_scalar("0-Episodic-Stats/SepAgentEpisodicReturn", total_episodic_return['first_0'], iteration)
             writer.add_scalar("0-Episodic-Stats/EntAgentEpisodicReturn", total_episodic_return['second_0'], iteration)
+
+            # bootstrap value if not done
+            next_value_S = separableAgent.get_value(next_obs_S).reshape(1, -1)
+            next_value_E = entangledAgent.get_value(next_obs_E).reshape(1, -1)
+
+            advantages_S = torch.zeros_like(rewards_sep).to(device)
+            advantages_E = torch.zeros_like(rewards_ent).to(device)
+
+            lastgaelam_S = 0
+            lastgaelam_E = 0
+
+            for t in reversed(range(args.num_steps)):
+                if t == args.num_steps - 1:
+                    nextnonterminal_S = 1.0 - next_done_S
+                    nextnonterminal_E = 1.0 - next_done_E
+                    nextvalues_S = next_value_S
+                    nextvalues_E = next_value_E
+                else:
+                    nextnonterminal_S = 1.0 - dones_sep[t + 1]
+                    nextnonterminal_E = 1.0 - dones_ent[t + 1]
+                    nextvalues_S = values_sep[t + 1]
+                    nextvalues_E = values_ent[t + 1]
+
+                delta_S = rewards_sep[t] + args.gamma * nextvalues_S * nextnonterminal_S - values_sep[t]
+                advantages_S[t] = lastgaelam_S = delta_S + args.gamma * args.gae_lambda * nextnonterminal_S * lastgaelam_S
+
+                delta_E = rewards_ent[t] + args.gamma * nextvalues_E * nextnonterminal_E - values_ent[t]
+                advantages_E[t] = lastgaelam_E = delta_E + args.gamma * args.gae_lambda * nextnonterminal_E * lastgaelam_E
+            
+            returns_S = advantages_S + values_sep
+            returns_E = advantages_E + values_ent
         
+        # flatten the batch
+        b_obs_S = obs_sep.reshape((-1,) + env.single_observation_space.shape)
+        b_obs_E = obs_ent.reshape((-1,) + env.single_observation_space.shape)
+        b_actions_S = actions_sep.reshape((-1,) + env.single_action_space.shape)
+        b_actions_E = actions_ent.reshape((-1,) + env.single_action_space.shape)
+        b_logprobs_S = logprobs_sep.reshape(-1)
+        b_logprobs_E = logprobs_ent.reshape(-1)
+        b_returns_S = returns_S.reshape(-1)
+        b_returns_E = returns_E.reshape(-1)
+        b_advantages_S = advantages_S.reshape(-1)
+        b_advantages_E = advantages_E.reshape(-1)
+        b_values_S = values_sep.reshape(-1)
+        b_values_E = values_ent.reshape(-1)
+        
+        # optimizing the separable agent
         
         
         # Time estimation
