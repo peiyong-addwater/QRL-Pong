@@ -15,11 +15,9 @@ from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
 from model import (
-    Backbone,
+    Backbone2P,
     EntangledPPOAgent,
-    SeparablePPOAgent,
-    ClassicalPPOAgentWithPlaceholder,
-    ClassicalPPOAgentWithPlaceholderSineless
+    SeparablePPOAgent
 )
 
 from pettingzoo.atari import pong_v3
@@ -35,7 +33,7 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    track: bool = True
+    track: bool = False
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
@@ -142,8 +140,8 @@ if __name__ == "__main__":
     env.single_observation_space = env.observation_space('first_0')
 
     # agents
-    separableAgent = SeparablePPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone(out_dim = args.backbone_out_dim)).to(device) # 'first_0'
-    entangledAgent = EntangledPPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone(out_dim = args.backbone_out_dim)).to(device) # 'second_0'
+    separableAgent = SeparablePPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'first_0'
+    entangledAgent = EntangledPPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'second_0'
     print("Agents created...\n")
 
     # optimiser
@@ -167,7 +165,70 @@ if __name__ == "__main__":
     values_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
     # Start the game
-    
+    global_step = 0
+    start_time = time.time()
+    next_obs, _ = env.reset(seed = args.seed)
+
+    next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
+    next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
+
+    # print(next_obs_S.shape)
+
+    next_done_S = torch.zeros(args.num_envs).to(device)
+    next_done_E = torch.zeros(args.num_envs).to(device)
+
+    # Training loop
+    while env.agents:
+        for iteration in range(1, args.num_iterations + 1):
+            # Annealing the rate if instructed to do so.
+            if args.anneal_lr:
+                frac = 1.0 - (iteration - 1) / args.num_iterations
+                lrnow = frac * args.learning_rate
+                optimizerS.param_groups[0]["lr"] = lrnow
+                optimizerE.param_groups[0]["lr"] = lrnow
+            for step in range(0, args.num_steps):
+                global_step += args.num_envs
+                obs_sep[step] = next_obs_S
+                obs_ent[step] = next_obs_E
+
+                dones_sep[step] = next_done_S
+                dones_ent[step] = next_done_E
+
+                # Action logic
+                with torch.no_grad():
+                    action_sep, logprob_sep, _, value_sep = separableAgent.get_action_and_value(next_obs_S)
+                    action_ent, logprob_ent, _, value_ent = entangledAgent.get_action_and_value(next_obs_E)
+                actions_sep[step] = action_sep
+                actions_ent[step] = action_ent
+                logprobs_sep[step] = logprob_sep
+                logprobs_ent[step] = logprob_ent
+
+                # execute the game and log data.
+                actions = {'first_0': action_sep.cpu().numpy().item(), 'second_0': action_ent.cpu().numpy().item()}
+                next_obs, rewards, terminations, truncations, infos = env.step(actions)
+
+                next_done_S = np.array([np.logical_or(terminations['first_0'], truncations['first_0'])])
+                next_done_S = torch.Tensor(next_done_S).to(device)
+                next_done_E = np.array([np.logical_or(terminations['second_0'], truncations['second_0'])])
+                next_done_E = torch.Tensor(next_done_E).to(device)
+
+                next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
+                next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
+                
+                #print(rewards_sep.shape)
+                #print(torch.Tensor([rewards['first_0']]).to(device).view(-1).shape)
+                rewards_sep[step] = torch.Tensor([rewards['first_0']]).to(device).view(-1)
+                rewards_ent[step] = torch.Tensor([rewards['second_0']]).to(device).view(-1)
+
+                infos_S = infos['first_0']
+                infos_E = infos['second_0']
+
+
+
+        # after all iterations finished, break the while loop
+        break
+
+
 
 
 

@@ -75,6 +75,35 @@ class Backbone(nn.Module):
         )
     
     def forward(self, x):
+        # expected input shape:
+        # (num_envs, num_stacked_frames, 84, 84)
+        return self.network(x)
+
+class Backbone2P(nn.Module):
+    """
+    The backbone classical NN for extracting features from the Atari game screen.
+    It takes grey scale images of size 84x84 as input.
+    """
+    def __init__(self, out_dim):
+        super().__init__()
+        self.out_dim = out_dim
+        self.network = nn.Sequential(
+            layer_init(nn.Conv2d(4, 32, 8, stride=4)),
+            nn.ReLU(),
+            layer_init(nn.Conv2d(32, 64, 4, stride=2)),
+            nn.ReLU(),
+            layer_init(nn.Conv2d(64, 64, 3, stride=1)),
+            nn.ReLU(),
+            nn.Flatten(),
+            layer_init(nn.Linear(64 * 7 * 7, out_dim)),
+            # nn.ReLU(),
+            # layer_init(nn.Linear(512, out_dim)),
+            # nn.ReLU(),
+            ScaleToPi()
+        )
+    
+    def forward(self, x):
+        x = torch.einsum('...ijk->...kij', x)
         return self.network(x)
 
 class Placeholder4VQC(nn.Module):
