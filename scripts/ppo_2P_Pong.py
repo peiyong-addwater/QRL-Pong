@@ -3,6 +3,7 @@
 import os
 import random
 import time
+import datetime
 from dataclasses import dataclass
 
 import gymnasium as gym
@@ -33,10 +34,12 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    track: bool = False
+    track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
+    capture_video: bool = True
+    """if toggled, the video will be captured"""
 
     # Agent settings
     backbone_out_dim: int = 12
@@ -94,7 +97,7 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong2P__Dim__{args.backbone_out_dim}"
+    args.wandb_project_name = 'TestPong2P'#f"Pong2P__Dim__{args.backbone_out_dim}"
 
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
 
@@ -167,26 +170,31 @@ if __name__ == "__main__":
     # Start the game
     global_step = 0
     start_time = time.time()
-    next_obs, _ = env.reset(seed = args.seed)
-
-    next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
-    next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
-
-    # print(next_obs_S.shape)
-
-    next_done_S = torch.zeros(args.num_envs).to(device)
-    next_done_E = torch.zeros(args.num_envs).to(device)
-
     # Training loop
-    while env.agents:
-        for iteration in range(1, args.num_iterations + 1):
-            # Annealing the rate if instructed to do so.
-            if args.anneal_lr:
-                frac = 1.0 - (iteration - 1) / args.num_iterations
-                lrnow = frac * args.learning_rate
-                optimizerS.param_groups[0]["lr"] = lrnow
-                optimizerE.param_groups[0]["lr"] = lrnow
+    for iteration in range(1, args.num_iterations + 1):
+        print(f"----Iteration {iteration} of {args.num_iterations}...")
+        # Annealing the rate if instructed to do so.
+        if args.anneal_lr:
+            frac = 1.0 - (iteration - 1) / args.num_iterations
+            lrnow = frac * args.learning_rate
+            optimizerS.param_groups[0]["lr"] = lrnow
+            optimizerE.param_groups[0]["lr"] = lrnow
+            
+        next_obs, _ = env.reset(seed=None)
+
+        total_episodic_return = {'first_0':0, 'second_0':0}
+
+        next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
+        next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
+
+        # print(next_obs_S.shape)
+
+        next_done_S = torch.zeros(args.num_envs).to(device)
+        next_done_E = torch.zeros(args.num_envs).to(device)
+
+        with torch.no_grad():
             for step in range(0, args.num_steps):
+
                 global_step += args.num_envs
                 obs_sep[step] = next_obs_S
                 obs_ent[step] = next_obs_E
@@ -195,17 +203,27 @@ if __name__ == "__main__":
                 dones_ent[step] = next_done_E
 
                 # Action logic
-                with torch.no_grad():
-                    action_sep, logprob_sep, _, value_sep = separableAgent.get_action_and_value(next_obs_S)
-                    action_ent, logprob_ent, _, value_ent = entangledAgent.get_action_and_value(next_obs_E)
+                action_sep, logprob_sep, _, value_sep = separableAgent.get_action_and_value(next_obs_S)
+                action_ent, logprob_ent, _, value_ent = entangledAgent.get_action_and_value(next_obs_E)
                 actions_sep[step] = action_sep
                 actions_ent[step] = action_ent
                 logprobs_sep[step] = logprob_sep
                 logprobs_ent[step] = logprob_ent
 
                 # execute the game and log data.
-                actions = {'first_0': action_sep.cpu().numpy().item(), 'second_0': action_ent.cpu().numpy().item()}
-                next_obs, rewards, terminations, truncations, infos = env.step(actions)
+
+                while env.agents:
+                    actions = {'first_0': action_sep.cpu().numpy().item(), 'second_0': action_ent.cpu().numpy().item()}
+                    # print(actions)
+                    next_obs, rewards, terminations, truncations, infos = env.step(actions)
+                    break
+                #print("actions taken")
+
+                total_episodic_return['first_0'] += rewards['first_0'].item()
+                total_episodic_return['second_0'] += rewards['second_0'].item()
+
+                episode_over = (terminations['first_0'] or terminations['second_0']) or (truncations['first_0'] or truncations['second_0'])
+
 
                 next_done_S = np.array([np.logical_or(terminations['first_0'], truncations['first_0'])])
                 next_done_S = torch.Tensor(next_done_S).to(device)
@@ -220,13 +238,24 @@ if __name__ == "__main__":
                 rewards_sep[step] = torch.Tensor([rewards['first_0']]).to(device).view(-1)
                 rewards_ent[step] = torch.Tensor([rewards['second_0']]).to(device).view(-1)
 
-                infos_S = infos['first_0']
-                infos_E = infos['second_0']
+                # infos has nothing since in the original code (https://github.com/Farama-Foundation/PettingZoo/blob/master/pettingzoo/atari/base_atari_env.py) it is implemented as
+                # infos = {agent: {} for agent in self.possible_agents if agent in self.agents}
+                # infos_S = infos['first_0']
+                # infos_E = infos['second_0']
 
-
-
-        # after all iterations finished, break the while loop
-        break
+                if episode_over:
+                    break
+            
+            print(f"Iteration={iteration}, SepAgent episodic return={total_episodic_return['first_0']}, EntAgent episodic return={total_episodic_return['second_0']}")
+            writer.add_scalar("0-Episodic-Stats/SepAgentEpisodicReturn", total_episodic_return['first_0'], iteration)
+            writer.add_scalar("0-Episodic-Stats/EntAgentEpisodicReturn", total_episodic_return['second_0'], iteration)
+        
+        
+        
+        # Time estimation
+        iter_avg_time = (time.time() - start_time) / iteration
+        print(f"------Single Iteration Time: {iter_avg_time:.4f} seconds, time remaining: {str(datetime.timedelta(seconds=iter_avg_time*(args.num_iterations - iteration)))}")
+            
 
 
 
