@@ -166,7 +166,7 @@ if __name__ == "__main__":
     values_ent = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
     # Start the game
-    global_step = 0
+    # global_step = 0
     start_time = time.time()
     # Training loop
     for iteration in range(1, args.num_iterations + 1):
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         with torch.no_grad():
             for step in range(0, args.num_steps):
 
-                global_step += args.num_envs
+                # global_step += args.num_envs
 
                 obs_sep[step] = next_obs_S
                 obs_ent[step] = next_obs_E
@@ -297,6 +297,7 @@ if __name__ == "__main__":
         b_values_E = values_ent.reshape(-1)
         
         b_inds = np.arange(args.batch_size)
+
         # optimizing the separable agent
         clipfracs_S = []
         for epoch in range(args.update_epochs):
@@ -348,7 +349,73 @@ if __name__ == "__main__":
         y_pred_S, y_true_S = b_values_S.cpu().numpy(), b_returns_S.cpu().numpy()
         var_y_S = np.var(y_true_S)
         explained_var_S = np.nan if var_y_S == 0 else 1 - np.var(y_true_S - y_pred_S) / var_y_S
-        
+
+        # log the data of the separable agent
+        writer.add_scalar("1-Training-Stats/SeparableAgent/ExplainedVariance", explained_var_S, iteration)
+        writer.add_scalar("1-Training-Stats/SeparableAgent/PolicyLoss", pg_loss_S.item(), iteration)
+        writer.add_scalar("1-Training-Stats/SeparableAgent/ValueLoss", v_loss_S.item(), iteration)
+        writer.add_scalar("1-Training-Stats/SeparableAgent/EntropyLoss", entropy_loss_S.item(), iteration)
+        writer.add_scalar("1-Training-Stats/SeparableAgent/ApproxKL", approx_kl_S.item(), iteration)
+        writer.add_scalar("1-Training-Stats/SeparableAgent/ClipFrac", np.mean(clipfracs_S), iteration)
+
+        # optimizing the entangled agent
+        clipfracs_E = []
+        for epoch in range(args.update_epochs):
+            np.random.shuffle(b_inds)
+            for start in range(0, args.batch_size, args.minibatch_size):
+                end = start + args.minibatch_size
+                mb_inds = b_inds[start:end]
+                _, newlogprob_E, entropy_E, newvalue_E = entangledAgent.get_action_and_value(b_obs_E[mb_inds], b_actions_E[mb_inds])
+                logratio_E = newlogprob_E - b_logprobs_E[mb_inds]
+                ratio_E = logratio_E.exp()
+                with torch.no_grad():
+                    approx_kl_E = (logprobs_ent[mb_inds] - newlogprob_E).mean()
+                    clipfracs_E += [((ratio_E - 1.0).abs() > args.clip_coef).float().mean().item()]
+                mb_advantages_E = b_advantages_E[mb_inds]
+                if args.norm_adv:
+                    mb_advantages_E = (mb_advantages_E - mb_advantages_E.mean()) / (mb_advantages_E.std() + 1e-8)
+                
+                # policy loss
+                pg_loss1_E = -mb_advantages_E * ratio_E
+                pg_loss2_E = -mb_advantages_E * torch.clamp(ratio_E, 1.0 - args.clip_coef, 1.0 + args.clip_coef)
+                pg_loss_E = torch.max(pg_loss1_E, pg_loss2_E).mean()
+                # value loss
+                newvalue_E = newvalue_E.view(-1)
+                if args.clip_vloss:
+                    v_loss_unclipped_E = (newvalue_E - b_returns_S[mb_inds]) ** 2
+                    v_clipped_E = b_values_E[mb_inds] + torch.clamp(newvalue_E - b_values_E[mb_inds], -args.clip_coef, args.clip_coef)
+                    v_loss_clipped_E = (v_clipped_E - b_returns_S[mb_inds]) ** 2
+                    v_loss_max_E = torch.max(v_loss_unclipped_E, v_loss_clipped_E)
+                    v_loss_E = 0.5 * v_loss_max_E.mean()
+                else:
+                    v_loss_E = 0.5 * ((newvalue_E - b_returns_S[mb_inds]) ** 2).mean()
+                
+                entropy_loss_E = entropy_E.mean()
+                loss_E = pg_loss_E - args.ent_coef * entropy_loss_E + args.vf_coef * v_loss_E
+
+                #old_param = entangledAgent.state_dict()['backbone.network.7.weight']
+                #print("old_param:", old_param)
+                optimizerE.zero_grad()
+                loss_E.backward()
+                nn.utils.clip_grad_norm_(entangledAgent.parameters(), args.max_grad_norm)
+                optimizerE.step()
+                #new_param = entangledAgent.state_dict()['backbone.network.7.weight']
+                #print("new_param:", new_param)
+                if args.clamp_actor_weights:
+                    entangledAgent.state_dict()["actor.0.q_params"].data.clamp_(-np.pi, np.pi)
+            
+        # calculate the explained variance of the entangled agent
+        y_pred_E, y_true_E = b_values_E.cpu().numpy(), b_returns_S.cpu().numpy()
+        var_y_E = np.var(y_true_E)
+        explained_var_E = np.nan if var_y_E == 0 else 1 - np.var(y_true_E - y_pred_E) / var_y_E
+        # log the data of the entangled agent
+        writer.add_scalar("1-Training-Stats/EntangledAgent/ExplainedVariance", explained_var_E, iteration)
+        writer.add_scalar("1-Training-Stats/EntangledAgent/PolicyLoss", pg_loss_E.item(), iteration)
+        writer.add_scalar("1-Training-Stats/EntangledAgent/ValueLoss", v_loss_E.item(), iteration)
+        writer.add_scalar("1-Training-Stats/EntangledAgent/EntropyLoss", entropy_loss_E.item(), iteration)
+        writer.add_scalar("1-Training-Stats/EntangledAgent/ApproxKL", approx_kl_E.item(), iteration)
+        writer.add_scalar("1-Training-Stats/EntangledAgent/ClipFrac", np.mean(clipfracs_E), iteration)
+                    
         
         
         # Time estimation
