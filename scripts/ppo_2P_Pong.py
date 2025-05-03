@@ -46,7 +46,7 @@ class Args:
     """the output dimension of the backbone network"""
     model_save_path: str = None
     """the path to save the model"""
-    clamp_actor_weights: bool = False
+    clamp_actor_weights: bool = True
     """if toggled, the quantum actor weights will be clamped to [-pi, pi]. Only used for quantum-classical hybrid agents"""
 
     # Algorithm specific arguments
@@ -78,8 +78,6 @@ class Args:
     """coefficient of the value function"""
     max_grad_norm: float = 0.5
     """the maximum norm for the gradient clipping"""
-    target_kl: float = None
-    """the target KL divergence threshold"""
 
     # to be filled in runtime
     batch_size: int = 0
@@ -183,6 +181,7 @@ if __name__ == "__main__":
         next_obs, _ = env.reset(seed=None)
 
         total_episodic_return = {'first_0':0, 'second_0':0}
+        episodic_length = 0
 
         next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
         next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
@@ -196,6 +195,7 @@ if __name__ == "__main__":
             for step in range(0, args.num_steps):
 
                 global_step += args.num_envs
+
                 obs_sep[step] = next_obs_S
                 obs_ent[step] = next_obs_E
 
@@ -221,6 +221,7 @@ if __name__ == "__main__":
 
                 total_episodic_return['first_0'] += rewards['first_0'].item()
                 total_episodic_return['second_0'] += rewards['second_0'].item()
+                episodic_length += 1
 
                 episode_over = (terminations['first_0'] or terminations['second_0']) or (truncations['first_0'] or truncations['second_0'])
 
@@ -246,7 +247,7 @@ if __name__ == "__main__":
                 if episode_over:
                     break
             
-            print(f"Iteration={iteration}, SepAgent episodic return={total_episodic_return['first_0']}, EntAgent episodic return={total_episodic_return['second_0']}")
+            print(f"Iteration={iteration}, Episodic length={episodic_length}, SepAgent episodic return={total_episodic_return['first_0']}, EntAgent episodic return={total_episodic_return['second_0']}")
             writer.add_scalar("0-Episodic-Stats/SepAgentEpisodicReturn", total_episodic_return['first_0'], iteration)
             writer.add_scalar("0-Episodic-Stats/EntAgentEpisodicReturn", total_episodic_return['second_0'], iteration)
 
@@ -295,7 +296,59 @@ if __name__ == "__main__":
         b_values_S = values_sep.reshape(-1)
         b_values_E = values_ent.reshape(-1)
         
+        b_inds = np.arange(args.batch_size)
         # optimizing the separable agent
+        clipfracs_S = []
+        for epoch in range(args.update_epochs):
+            np.random.shuffle(b_inds)
+            for start in range(0, args.batch_size, args.minibatch_size):
+                end = start + args.minibatch_size
+                mb_inds = b_inds[start:end]
+                _, newlogprob_S, entropy_S, newvalue_S = separableAgent.get_action_and_value(b_obs_S[mb_inds], b_actions_S[mb_inds])
+                logratio_S = newlogprob_S - b_logprobs_S[mb_inds]
+                ratio_S = logratio_S.exp()
+                with torch.no_grad():
+                    approx_kl_S = (logprobs_sep[mb_inds] - newlogprob_S).mean()
+                    clipfracs_S += [((ratio_S - 1.0).abs() > args.clip_coef).float().mean().item()]
+                mb_advantages_S = b_advantages_S[mb_inds]
+                if args.norm_adv:
+                    mb_advantages_S = (mb_advantages_S - mb_advantages_S.mean()) / (mb_advantages_S.std() + 1e-8)
+                
+                # policy loss
+                pg_loss1_S = -mb_advantages_S * ratio_S
+                pg_loss2_S = -mb_advantages_S * torch.clamp(ratio_S, 1.0 - args.clip_coef, 1.0 + args.clip_coef)
+                pg_loss_S = torch.max(pg_loss1_S, pg_loss2_S).mean()
+                # value loss
+                newvalue_S = newvalue_S.view(-1)
+                if args.clip_vloss:
+                    v_loss_unclipped_S = (newvalue_S - b_returns_S[mb_inds]) ** 2
+                    v_clipped_S = b_values_S[mb_inds] + torch.clamp(newvalue_S - b_values_S[mb_inds], -args.clip_coef, args.clip_coef)
+                    v_loss_clipped_S = (v_clipped_S - b_returns_S[mb_inds]) ** 2
+                    v_loss_max_S = torch.max(v_loss_unclipped_S, v_loss_clipped_S)
+                    v_loss_S = 0.5 * v_loss_max_S.mean()
+                else:
+                    v_loss_S = 0.5 * ((newvalue_S - b_returns_S[mb_inds]) ** 2).mean()
+                
+                entropy_loss_S = entropy_S.mean()
+                loss_S = pg_loss_S - args.ent_coef * entropy_loss_S + args.vf_coef * v_loss_S
+                
+                #old_param = separableAgent.state_dict()['backbone.network.7.weight']
+                #print("old_param:", old_param)
+                optimizerS.zero_grad()
+                loss_S.backward()
+                nn.utils.clip_grad_norm_(separableAgent.parameters(), args.max_grad_norm)
+                optimizerS.step()
+                #new_param = separableAgent.state_dict()['backbone.network.7.weight']
+                #print("new_param:", new_param)
+
+                if args.clamp_actor_weights:
+                    separableAgent.state_dict()["actor.0.q_params"].data.clamp_(-np.pi, np.pi)
+        
+        # calculate the explained variance of the separable agent
+        y_pred_S, y_true_S = b_values_S.cpu().numpy(), b_returns_S.cpu().numpy()
+        var_y_S = np.var(y_true_S)
+        explained_var_S = np.nan if var_y_S == 0 else 1 - np.var(y_true_S - y_pred_S) / var_y_S
+        
         
         
         # Time estimation
