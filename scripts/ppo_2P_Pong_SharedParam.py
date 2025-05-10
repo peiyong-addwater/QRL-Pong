@@ -82,6 +82,8 @@ class Args:
     """coefficient of the value function"""
     max_grad_norm: float = 0.5
     """the maximum norm for the gradient clipping"""
+    target_kl: float = None
+    """the target KL divergence threshold"""
 
     # to be filled in runtime
     batch_size: int = 0
@@ -99,17 +101,17 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = 'TestPong2P'#f"Pong2P__Dim__{args.backbone_out_dim}"
+    args.wandb_project_name = f"Pong2PSharedParam__Dim__{args.backbone_out_dim}"
 
 
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
 
-    run_name = f"Pong2P__{args.agent_type}__Dim__{args.backbone_out_dim}__Seed__{args.seed}__{int(time.time())}"
+    run_name = f"Pong2P__{args.agent_type}__ActorParamClamped__{args.clamp_actor_weights}__Dim__{args.backbone_out_dim}__Seed__{args.seed}__{int(time.time())}"
 
     if args.model_save_path is None:
-        if not os.path.exists("trained-models"):
-            os.makedirs("trained-models")
-        args.model_save_path = f"trained-models/{run_name}.pt"
+        if not os.path.exists("trained-models/Pong2PModels"):
+            os.makedirs("trained-models/Pong2PModels")
+        args.model_save_path = f"trained-models/Pong2PModels/{run_name}.pt"
 
     print(args)
 
@@ -229,8 +231,8 @@ if __name__ == "__main__":
                 player_idx = i % 2
                 if next_done[i] > 0:
                     print(f"Player {player_idx} Return {total_episodic_rewards[i]} at global step {global_step}")
-                    writer.add_scalar(f"0-Episodic-Stats/episodic_return_{player_idx}", total_episodic_rewards[i], global_step)
-                    writer.add_scalar(f"0-Episodic-Stats/episodic_length_{player_idx}", total_episodic_lengths[i], global_step)
+                    writer.add_scalar(f"0-Episodic-Stats/episodic_return_player_{player_idx}", total_episodic_rewards[i], global_step)
+                    writer.add_scalar(f"0-Episodic-Stats/episodic_length_player_{player_idx}", total_episodic_lengths[i], global_step)
             
         # bootstrap value if not done
         with torch.no_grad():
