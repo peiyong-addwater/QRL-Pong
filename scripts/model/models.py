@@ -88,7 +88,7 @@ class Backbone2P(nn.Module):
         super().__init__()
         self.out_dim = out_dim
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(4, 32, 8, stride=4)),
+            layer_init(nn.Conv2d(6, 32, 8, stride=4)),
             nn.ReLU(),
             layer_init(nn.Conv2d(32, 64, 4, stride=2)),
             nn.ReLU(),
@@ -103,8 +103,9 @@ class Backbone2P(nn.Module):
         )
     
     def forward(self, x):
-        x = torch.einsum('...ijk->...kij', x)
-        return self.network(x)
+        x = x.clone()
+        x[:, :, :, [0, 1, 2, 3]] /= 255.0
+        return self.network(x.permute((0, 3, 1, 2)))
 
 class Placeholder4VQC(nn.Module):
     """

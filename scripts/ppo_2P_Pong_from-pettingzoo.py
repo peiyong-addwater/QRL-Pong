@@ -1,3 +1,4 @@
+# docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/ppo/#ppo_pettingzoo_ma_ataripy
 import argparse
 import importlib
 import os
@@ -5,7 +6,7 @@ import random
 import time
 from distutils.util import strtobool
 
-import gymnasium as gym
+import gym
 import numpy as np
 import supersuit as ss
 import torch
@@ -26,19 +27,19 @@ def parse_args():
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
     parser.add_argument("--cuda", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, cuda will be enabled by default")
-    parser.add_argument("--track", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
+    parser.add_argument("--track", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
         help="if toggled, this experiment will be tracked with Weights and Biases")
-    parser.add_argument("--wandb-project-name", type=str, default="pong2p-test",
+    parser.add_argument("--wandb-project-name", type=str, default="cleanRL",
         help="the wandb's project name")
-    parser.add_argument("--wandb-entity", type=str, default="addwater0315-csiro",
+    parser.add_argument("--wandb-entity", type=str, default=None,
         help="the entity (team) of wandb's project")
-    parser.add_argument("--capture-video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
+    parser.add_argument("--capture_video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
         help="whether to capture videos of the agent performances (check out `videos` folder)")
 
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="pong_v3",
         help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=12000,  # CleanRL default: 2000000
+    parser.add_argument("--total-timesteps", type=int, default=20000000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=2.5e-4,
         help="the learning rate of the optimizer")
@@ -117,9 +118,7 @@ class Agent(nn.Module):
 
 
 if __name__ == "__main__":
-    # --num-steps 32 --num-envs 6 --total-timesteps 256
     args = parse_args()
-    print(args)
     run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
@@ -136,8 +135,7 @@ if __name__ == "__main__":
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
         "hyperparameters",
-        "|param|value|\n|-|-|\n%s"
-        % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
 
     # TRY NOT TO MODIFY: seeding
@@ -149,7 +147,8 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    env = importlib.import_module(f"pettingzoo.atari.{args.env_id}").parallel_env(num_players=2)
+    env = importlib.import_module(f"pettingzoo.atari.{args.env_id}").parallel_env()
+    env = ss.max_observation_v0(env, 2)
     env = ss.frame_skip_v0(env, 4)
     env = ss.clip_reward_v0(env, lower_bound=-1, upper_bound=1)
     env = ss.color_reduction_v0(env, mode="B")
@@ -157,42 +156,31 @@ if __name__ == "__main__":
     env = ss.frame_stack_v1(env, 4)
     env = ss.agent_indicator_v0(env, type_only=False)
     env = ss.pettingzoo_env_to_vec_env_v1(env)
-    envs = ss.concat_vec_envs_v1(
-        env, args.num_envs // 2, num_cpus=0, base_class="gymnasium"
-    )
+    envs = ss.concat_vec_envs_v1(env, args.num_envs // 2, num_cpus=0, base_class="gym")
     envs.single_observation_space = envs.observation_space
-    # print(envs.single_observation_space)
     envs.single_action_space = envs.action_space
     envs.is_vector_env = True
+    envs = gym.wrappers.RecordEpisodeStatistics(envs)
     if args.capture_video:
         envs = gym.wrappers.RecordVideo(envs, f"videos/{run_name}")
-    assert isinstance(
-        envs.single_action_space, gym.spaces.Discrete
-    ), "only discrete action space is supported"
+    assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
     agent = Agent(envs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
 
     # ALGO Logic: Storage setup
-    obs = torch.zeros(
-        (args.num_steps, args.num_envs) + envs.single_observation_space.shape
-    ).to(device)
-    actions = torch.zeros(
-        (args.num_steps, args.num_envs) + envs.single_action_space.shape
-    ).to(device)
+    obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape).to(device)
+    actions = torch.zeros((args.num_steps, args.num_envs) + envs.single_action_space.shape).to(device)
     logprobs = torch.zeros((args.num_steps, args.num_envs)).to(device)
     rewards = torch.zeros((args.num_steps, args.num_envs)).to(device)
-    terminations = torch.zeros((args.num_steps, args.num_envs)).to(device)
-    truncations = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
     values = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
     # TRY NOT TO MODIFY: start the game
     global_step = 0
     start_time = time.time()
-    next_obs, info = envs.reset(seed=args.seed)
-    next_obs = torch.Tensor(next_obs).to(device)
-    next_termination = torch.zeros(args.num_envs).to(device)
-    next_truncation = torch.zeros(args.num_envs).to(device)
+    next_obs = torch.Tensor(envs.reset()).to(device)
+    next_done = torch.zeros(args.num_envs).to(device)
     num_updates = args.total_timesteps // args.batch_size
 
     for update in range(1, num_updates + 1):
@@ -205,8 +193,7 @@ if __name__ == "__main__":
         for step in range(0, args.num_steps):
             global_step += 1 * args.num_envs
             obs[step] = next_obs
-            terminations[step] = next_termination
-            truncations[step] = next_truncation
+            dones[step] = next_done
 
             # ALGO LOGIC: action logic
             with torch.no_grad():
@@ -215,50 +202,23 @@ if __name__ == "__main__":
             actions[step] = action
             logprobs[step] = logprob
 
-            print(action.shape)
-
             # TRY NOT TO MODIFY: execute the game and log data.
-            next_obs, reward, termination, truncation, info = envs.step(
-                action.cpu().numpy()
-            )
+            next_obs, reward, done, info = envs.step(action.cpu().numpy())
             rewards[step] = torch.tensor(reward).to(device).view(-1)
-            print(next_termination.shape, args.num_envs)
-            next_obs, next_termination, next_truncation = (
-                torch.Tensor(next_obs).to(device),
-                torch.Tensor(termination).to(device),
-                torch.Tensor(truncation).to(device),
-            )
+            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(done).to(device)
 
-            # print(next_obs.shape)
-
-            # TODO: fix this
-            # len(info) = args.num_envs
             for idx, item in enumerate(info):
                 player_idx = idx % 2
-                if len(item.keys()) > 0:
-                    print(info)
                 if "episode" in item.keys():
-                    print(
-                        f"global_step={global_step}, {player_idx}-episodic_return={item['episode']['r']}"
-                    )
-                    writer.add_scalar(
-                        f"charts/episodic_return-player{player_idx}",
-                        item["episode"]["r"],
-                        global_step,
-                    )
-                    writer.add_scalar(
-                        f"charts/episodic_length-player{player_idx}",
-                        item["episode"]["l"],
-                        global_step,
-                    )
+                    print(f"global_step={global_step}, {player_idx}-episodic_return={item['episode']['r']}")
+                    writer.add_scalar(f"charts/episodic_return-player{player_idx}", item["episode"]["r"], global_step)
+                    writer.add_scalar(f"charts/episodic_length-player{player_idx}", item["episode"]["l"], global_step)
 
         # bootstrap value if not done
         with torch.no_grad():
             next_value = agent.get_value(next_obs).reshape(1, -1)
             advantages = torch.zeros_like(rewards).to(device)
             lastgaelam = 0
-            next_done = torch.maximum(next_termination, next_truncation)
-            dones = torch.maximum(terminations, truncations)
             for t in reversed(range(args.num_steps)):
                 if t == args.num_steps - 1:
                     nextnonterminal = 1.0 - next_done
@@ -266,12 +226,8 @@ if __name__ == "__main__":
                 else:
                     nextnonterminal = 1.0 - dones[t + 1]
                     nextvalues = values[t + 1]
-                delta = (
-                    rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
-                )
-                advantages[t] = lastgaelam = (
-                    delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
-                )
+                delta = rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
+                advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
         # flatten the batch
@@ -291,9 +247,7 @@ if __name__ == "__main__":
                 end = start + args.minibatch_size
                 mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = agent.get_action_and_value(
-                    b_obs[mb_inds], b_actions.long()[mb_inds]
-                )
+                _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
                 logratio = newlogprob - b_logprobs[mb_inds]
                 ratio = logratio.exp()
 
@@ -301,21 +255,15 @@ if __name__ == "__main__":
                     # calculate approx_kl http://joschu.net/blog/kl-approx.html
                     old_approx_kl = (-logratio).mean()
                     approx_kl = ((ratio - 1) - logratio).mean()
-                    clipfracs += [
-                        ((ratio - 1.0).abs() > args.clip_coef).float().mean().item()
-                    ]
+                    clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
 
                 mb_advantages = b_advantages[mb_inds]
                 if args.norm_adv:
-                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (
-                        mb_advantages.std() + 1e-8
-                    )
+                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
                 # Policy loss
                 pg_loss1 = -mb_advantages * ratio
-                pg_loss2 = -mb_advantages * torch.clamp(
-                    ratio, 1 - args.clip_coef, 1 + args.clip_coef
-                )
+                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
                 # Value loss
@@ -350,9 +298,7 @@ if __name__ == "__main__":
         explained_var = np.nan if var_y == 0 else 1 - np.var(y_true - y_pred) / var_y
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        writer.add_scalar(
-            "charts/learning_rate", optimizer.param_groups[0]["lr"], global_step
-        )
+        writer.add_scalar("charts/learning_rate", optimizer.param_groups[0]["lr"], global_step)
         writer.add_scalar("losses/value_loss", v_loss.item(), global_step)
         writer.add_scalar("losses/policy_loss", pg_loss.item(), global_step)
         writer.add_scalar("losses/entropy", entropy_loss.item(), global_step)
@@ -361,9 +307,7 @@ if __name__ == "__main__":
         writer.add_scalar("losses/clipfrac", np.mean(clipfracs), global_step)
         writer.add_scalar("losses/explained_variance", explained_var, global_step)
         print("SPS:", int(global_step / (time.time() - start_time)))
-        writer.add_scalar(
-            "charts/SPS", int(global_step / (time.time() - start_time)), global_step
-        )
+        writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
     envs.close()
     writer.close()
