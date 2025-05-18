@@ -3,6 +3,7 @@ import random
 import time
 import datetime
 from dataclasses import dataclass
+import json
 
 import gymnasium as gym
 import numpy as np
@@ -32,13 +33,14 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    track: bool = False
+    track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
+    wandb_project_name: str = "Pong2PCompete"
+    """the name of the wandb project"""
     num_episodes: int = 1000
     """the number of episodes to run"""
-    num_tests: int = 100
     
     # Agent settings
     backbone_out_dim: int = 12
@@ -110,19 +112,7 @@ if __name__ == "__main__":
     
 
     # We set the entangled agent to be 'first_0' and the separable agent to be 'second_0'
-    obs_sep = torch.zeros((args.num_episodes, args.num_envs) + env.single_observation_space.shape).to(device)
-    actions_sep = torch.zeros((args.num_episodes, args.num_envs) + env.single_action_space.shape).to(device)
-    
-    rewards_sep = torch.zeros((args.num_episodes, args.num_envs)).to(device)
-    dones_sep = torch.zeros((args.num_episodes, args.num_envs)).to(device)
-    
-    # storage for the entangled agent
-    obs_ent = torch.zeros((args.num_episodes, args.num_envs) + env.single_observation_space.shape).to(device)
-    actions_ent = torch.zeros((args.num_episodes, args.num_envs) + env.single_action_space.shape).to(device)
-    
-    rewards_ent = torch.zeros((args.num_episodes, args.num_envs)).to(device)
-    dones_ent = torch.zeros((args.num_episodes, args.num_envs)).to(device)
-
+   
     next_obs, _ = env.reset(seed=args.seed)
 
     total_episodic_return = {'first_0':[], 'second_0':[]}
@@ -133,20 +123,14 @@ if __name__ == "__main__":
 
     next_done_S = torch.zeros(args.num_envs).to(device)
     next_done_E = torch.zeros(args.num_envs).to(device)
-
+    episode = 0
     with torch.no_grad():
-        for step in range(args.num_episodes):
-            obs_sep[step] = next_obs_S
-            obs_ent[step] = next_obs_E
-
-            dones_sep[step] = next_done_S
-            dones_ent[step] = next_done_E
+        episode_over = False
+        while not episode_over:
 
             # Action logic
             action_sep, logprob_sep, _, value_sep = separableAgent.get_action_and_value(next_obs_S)
             action_ent, logprob_ent, _, value_ent = entangledAgent.get_action_and_value(next_obs_E)
-            actions_sep[step] = action_sep
-            actions_ent[step] = action_ent
 
              # execute the game and log data.
             while env.agents:
@@ -156,11 +140,50 @@ if __name__ == "__main__":
                 }
                 next_obs, rewards, terminations, truncations, infos = env.step(actions)
                 break
+            
+            # remove negative punishment when losing a point
+            if rewards['first_0'] == -1:
+                rewards['first_0'] = np.array(0)
 
+            if rewards['second_0'] == -1:
+                rewards['second_0'] = np.array(0)
+            
             total_episodic_return['first_0'].append(rewards['first_0'].item())
             total_episodic_return['second_0'].append(rewards['second_0'].item())
+            print(total_episodic_return['first_0'][-1], total_episodic_return['second_0'][-1])
             episode_over = (terminations['first_0'] or terminations['second_0']) or (truncations['first_0'] or truncations['second_0'])
-            print(episode_over)
+
+            if sum(total_episodic_return['first_0'])>= 21 or sum(total_episodic_return['second_0'])>= 21 or sum(total_episodic_return['first_0'])<= -21 or sum(total_episodic_return['second_0'])<= -21:
+                episode_over = True
+                print("Episode over due to score limit")
+
+            episodic_length += 1
+
+            writer.add_scalar("AccumulatedRewards/first_0", sum(total_episodic_return['first_0']), episode)
+            writer.add_scalar("AccumulatedRewards/second_0", sum(total_episodic_return['second_0']), episode)
+            writer.add_scalar("EpisodeLength", episodic_length, episode)
+            episode += 1
+            if episode_over:
+                break
+        
+    res_dict = {
+        "episodic_return": total_episodic_return, 
+        "episodic_length": episodic_length,
+        "final_return": {
+            "first_0": sum(total_episodic_return['first_0']),
+            "second_0": sum(total_episodic_return['second_0'])
+        }
+    }
+
+    if not os.path.exists("competeRes"):
+        os.makedirs("competeRes")
+    with open(os.path.join("competeRes", f"{run_name}.json"), "w") as f:
+        json.dump(res_dict, f, indent=4)
+    print(f"Results saved to competeRes/{run_name}.json")
+
+
+    
+
 
 
 
