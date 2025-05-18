@@ -32,12 +32,13 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    track: bool = True
+    track: bool = False
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
     num_episodes: int = 1000
     """the number of episodes to run"""
+    num_tests: int = 100
     
     # Agent settings
     backbone_out_dim: int = 12
@@ -48,6 +49,7 @@ class Args:
 if __name__ == "__main__":
     args = tyro.cli(Args)
     args.backbone_out_dim = 12
+    args.num_envs = 1
     args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
 
     random.seed(args.seed)
@@ -59,7 +61,26 @@ if __name__ == "__main__":
 
     run_name = f"{args.exp_name}__ActorParamClamped__{args.clamp_actor_weights}__Dim__{12}__Seed__{args.seed}__{int(time.time())}"
 
-    base_pretrained_model_dir = os.path.join("trained_models", "Pong2PModels")
+    if args.track:
+        import wandb
+
+        wandb.init(
+            project=args.wandb_project_name,
+            entity=args.wandb_entity,
+            sync_tensorboard=True,
+            config=vars(args),
+            name=run_name,
+            monitor_gym=False,
+            save_code=False,
+        )
+    
+    writer = SummaryWriter(f"runs/{run_name}")
+    writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+    )
+
+    base_pretrained_model_dir = os.path.join("trained-models", "Pong2PModels")
 
     env = pong_v3.parallel_env(render_mode="human")
     env = ss.frame_skip_v0(env, 4)
@@ -67,9 +88,9 @@ if __name__ == "__main__":
     env = ss.color_reduction_v0(env, mode="B")
     env = ss.resize_v1(env, x_size=84, y_size=84)
     env = ss.frame_stack_v1(env, 4)
+    env = ss.agent_indicator_v0(env, type_only=False)
     env.single_action_space = env.action_space('first_0')
     env.single_observation_space = env.observation_space('first_0')
-    env = ss.agent_indicator_v0(env, type_only=False)
 
     separableAgent = SeparablePPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'first_0'
     entangledAgent = EntangledPPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'second_0'
@@ -87,5 +108,60 @@ if __name__ == "__main__":
         entangledAgent.load_state_dict(torch.load(entangled_pretrained_model_path))
         separableAgent.load_state_dict(torch.load(separable_pretrained_model_path))
     
+
+    # We set the entangled agent to be 'first_0' and the separable agent to be 'second_0'
+    obs_sep = torch.zeros((args.num_episodes, args.num_envs) + env.single_observation_space.shape).to(device)
+    actions_sep = torch.zeros((args.num_episodes, args.num_envs) + env.single_action_space.shape).to(device)
+    
+    rewards_sep = torch.zeros((args.num_episodes, args.num_envs)).to(device)
+    dones_sep = torch.zeros((args.num_episodes, args.num_envs)).to(device)
+    
+    # storage for the entangled agent
+    obs_ent = torch.zeros((args.num_episodes, args.num_envs) + env.single_observation_space.shape).to(device)
+    actions_ent = torch.zeros((args.num_episodes, args.num_envs) + env.single_action_space.shape).to(device)
+    
+    rewards_ent = torch.zeros((args.num_episodes, args.num_envs)).to(device)
+    dones_ent = torch.zeros((args.num_episodes, args.num_envs)).to(device)
+
+    next_obs, _ = env.reset(seed=args.seed)
+
+    total_episodic_return = {'first_0':[], 'second_0':[]}
+    episodic_length = 0
+
+    next_obs_S = torch.Tensor(next_obs['first_0']).to(device).unsqueeze(0)
+    next_obs_E = torch.Tensor(next_obs['second_0']).to(device).unsqueeze(0)
+
+    next_done_S = torch.zeros(args.num_envs).to(device)
+    next_done_E = torch.zeros(args.num_envs).to(device)
+
+    with torch.no_grad():
+        for step in range(args.num_episodes):
+            obs_sep[step] = next_obs_S
+            obs_ent[step] = next_obs_E
+
+            dones_sep[step] = next_done_S
+            dones_ent[step] = next_done_E
+
+            # Action logic
+            action_sep, logprob_sep, _, value_sep = separableAgent.get_action_and_value(next_obs_S)
+            action_ent, logprob_ent, _, value_ent = entangledAgent.get_action_and_value(next_obs_E)
+            actions_sep[step] = action_sep
+            actions_ent[step] = action_ent
+
+             # execute the game and log data.
+            while env.agents:
+                actions = {
+                    'first_0':action_sep.cpu().numpy().item(),
+                    'second_0':action_ent.cpu().numpy().item()
+                }
+                next_obs, rewards, terminations, truncations, infos = env.step(actions)
+                break
+
+            total_episodic_return['first_0'].append(rewards['first_0'].item())
+            total_episodic_return['second_0'].append(rewards['second_0'].item())
+            episode_over = (terminations['first_0'] or terminations['second_0']) or (truncations['first_0'] or truncations['second_0'])
+            print(episode_over)
+
+
 
 
