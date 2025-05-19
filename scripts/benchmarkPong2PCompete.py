@@ -25,7 +25,7 @@ def run_experiment(command: str):
 
 command_list = []
 
-for i in range(16, 20):
+for i in range(21, 30):
     command_list.append(
         f"uv run pong2p_compete.py --seed {i} --clamp_actor_weights"
     )
