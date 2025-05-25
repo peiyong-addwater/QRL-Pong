@@ -111,7 +111,7 @@ if __name__ == "__main__":
         separableAgent.load_state_dict(torch.load(separable_pretrained_model_path))
     
 
-    # We set the entangled agent to be 'first_0' and the separable agent to be 'second_0'
+    # We set the entangled agent to be 'second_0' and the separable agent to be 'first_0'
    
     next_obs, _ = env.reset(seed=args.seed)
 
