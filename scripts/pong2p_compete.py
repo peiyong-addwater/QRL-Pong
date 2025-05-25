@@ -172,7 +172,8 @@ if __name__ == "__main__":
         "final_return": {
             "first_0": sum(total_episodic_return['first_0']),
             "second_0": sum(total_episodic_return['second_0'])
-        }
+        },
+        "winner": "first_0" if sum(total_episodic_return['first_0']) > sum(total_episodic_return['second_0']) else "second_0",
     }
 
     if not os.path.exists("competeRes"):
