@@ -18,7 +18,8 @@ from torch.utils.tensorboard import SummaryWriter
 from model import (
     Backbone2P,
     EntangledPPOAgent,
-    SeparablePPOAgent
+    SeparablePPOAgent,
+    Backbone
 )
 
 from pettingzoo.atari import pong_v3
@@ -138,10 +139,12 @@ if __name__ == "__main__":
     env = ss.color_reduction_v0(env, mode="B")
     env = ss.resize_v1(env, x_size=84, y_size=84)
     env = ss.frame_stack_v1(env, 4)
+    env = ss.agent_indicator_v0(env, type_only=False)
     env.single_action_space = env.action_space('first_0')
     env.single_observation_space = env.observation_space('first_0')
 
     # agents
+    print("Creating agents...")
     separableAgent = SeparablePPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'first_0'
     entangledAgent = EntangledPPOAgent(env, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone = Backbone2P(out_dim = args.backbone_out_dim)).to(device) # 'second_0'
     print("Agents created...\n")
