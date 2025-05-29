@@ -38,8 +38,6 @@ class Args:
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
-    capture_video: bool = True
-    """if toggled, the video will be captured"""
 
     # Agent settings
     backbone_out_dim: int = 12
@@ -95,11 +93,14 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = 'TestPong2P'#f"Pong2P__Dim__{args.backbone_out_dim}"
+    args.wandb_project_name = f"Pong2PSingleEnvDiffAgents__Dim__{args.backbone_out_dim}"
 
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
 
-    run_name = f"Pong2P__Dim__{args.backbone_out_dim}__Seed__{args.seed}__{int(time.time())}"
+    run_name = f"Pong2PSingleEnvDiffAgent__Dim__{args.backbone_out_dim}__Seed__{args.seed}__{int(time.time())}"
+
+    if not os.path.exists("trained-models/Pong2PModels"):
+        os.makedirs("trained-models/Pong2PModels")
 
     print(args)
 
@@ -421,7 +422,16 @@ if __name__ == "__main__":
         # Time estimation
         iter_avg_time = (time.time() - start_time) / iteration
         print(f"------Single Iteration Time: {iter_avg_time:.4f} seconds, time remaining: {str(datetime.timedelta(seconds=iter_avg_time*(args.num_iterations - iteration)))}")
-            
+    
+    # Save the model
+    entangledAgent_filename = f"trained-models/Pong2PModels/EntangledAgent_{run_name}.pt"
+    separableAgent_filename = f"trained-models/Pong2PModels/SeparableAgent_{run_name}.pt"
+    torch.save(entangledAgent.state_dict(), entangledAgent_filename)
+    torch.save(separableAgent.state_dict(), separableAgent_filename)
+    print(f"Saved the entangled agent to {entangledAgent_filename}")
+    print(f"Saved the separable agent to {separableAgent_filename}")
+    env.close()
+    writer.close()
 
 
 
