@@ -330,8 +330,13 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
             for j in range(n_qubits):
                 qml.U3(weights_layer_i[...,j,0], weights_layer_i[...,j,1], weights_layer_i[...,j,2], wires=j)
             # entanglement
+            # UPDATE: Changed the simple circular entanglement to an all-to-all entanglement
+            #for j in range(n_qubits):
+            #    qml.CNOT(wires=[j, (j+1)%n_qubits])
             for j in range(n_qubits):
-                qml.CNOT(wires=[j, (j+1)%n_qubits])
+                for k in range(n_qubits):
+                    if j != k:
+                        qml.CNOT(wires=[j, k])
         return [[qml.expval(qml.PauliX(i)), qml.expval(qml.PauliY(i)), qml.expval(qml.PauliZ(i))] for i in range(n_qubits)]
     
     # not sure whether compiling the circuit will cause trouble
