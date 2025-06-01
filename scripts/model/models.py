@@ -335,8 +335,8 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
             #    qml.CNOT(wires=[j, (j+1)%n_qubits])
             for j in range(n_qubits):
                 for k in range(n_qubits):
-                    if j != k:
-                        qml.CNOT(wires=[j, k])
+                    if j > k:
+                        qml.CZ(wires=[j, k])
         return [[qml.expval(qml.PauliX(i)), qml.expval(qml.PauliY(i)), qml.expval(qml.PauliZ(i))] for i in range(n_qubits)]
     
     # not sure whether compiling the circuit will cause trouble
