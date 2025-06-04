@@ -35,7 +35,7 @@ gym.register_envs(ale_py)
 
 @dataclass
 class Args:
-    exp_name: str = "Pong1P" #os.path.basename(__file__)[: -len(".py")]
+    exp_name: str = "Pong1PExtendedTrainingTime" #os.path.basename(__file__)[: -len(".py")]
     """the base name of the experiment"""
     seed: int = 1
     """random seed"""
@@ -69,7 +69,7 @@ class Args:
     # Algorithm specific arguments
     env_id: str = "PongNoFrameskip-v4"
     """the id of the environment"""
-    total_timesteps: int = 10000000
+    total_timesteps: int = 20000000
     """total timesteps of the experiments"""
     learning_rate: float = 2.5e-4
     """the learning rate of the optimizer"""
