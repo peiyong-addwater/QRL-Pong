@@ -174,7 +174,7 @@ if __name__ == "__main__":
             os.makedirs("trained-models")
             if not os.path.exists(os.path.join("trained-models", "Pong1PModels")):
                 os.makedirs(os.path.join("trained-models", "Pong1PModels"))
-        args.model_save_path = f"trained-models/{run_name}.pt"
+        args.model_save_path = f"trained-models/Pong1PModels/{run_name}.pt"
 
     print(args)
 

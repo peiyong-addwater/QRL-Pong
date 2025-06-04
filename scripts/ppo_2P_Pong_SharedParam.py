@@ -54,7 +54,7 @@ class Args:
     """the number of parallel environments"""
 
     # Algorithm specific arguments
-    total_timesteps: int = 10000000
+    total_timesteps: int = 20000000
     """total timesteps of the experiments"""
     learning_rate: float = 2.5e-4
     """the learning rate of the optimizer"""
