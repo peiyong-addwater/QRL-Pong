@@ -213,7 +213,7 @@ if __name__ == "__main__":
     if not args.from_scratch:
         raise ValueError("Pretrained backbone is not supported now, please set from_scratch=True")
     else:
-        backbone = Backbone(out_dim=args.backbone_out_dim)
+        backbone = Backbone()
         agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone=backbone).to(device)
         print("Training backbone from scratch")
     

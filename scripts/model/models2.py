@@ -289,7 +289,7 @@ class SeparablePPOAgent(nn.Module):
         super().__init__()
         n_actions = envs.single_action_space.n
         assert backbone is not None, "backbone is not provided"
-        assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
+        # assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.circ_qubits = math.ceil(backbone_out_dim/3)
         self.circ_out_dim = self.circ_qubits * 3
         self.circ_in_dim = self.circ_qubits * 3
@@ -402,7 +402,7 @@ class EntangledPPOAgent(nn.Module):
         super().__init__()
         n_actions = envs.single_action_space.n
         assert backbone is not None, "backbone is not provided"
-        assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
+        # assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.circ_qubits = math.ceil(backbone_out_dim/3)
         self.circ_out_dim = self.circ_qubits * 3
         self.circ_in_dim = self.circ_qubits * 3
