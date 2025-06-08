@@ -431,20 +431,3 @@ class EntangledPPOAgent(nn.Module):
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
 
-if __name__ == "__main__":
-    # test the single-qubit VQC system
-    n_layers = 18
-    n_qubits = 6
-    features = torch.randn(10 ,n_qubits, 3)
-    weights = torch.randn(n_qubits, n_layers, 3)
-    circuit = make_entangled_vqc_sys(n_layers, n_qubits)
-    out = circuit(features, weights)
-    print(out.shape)
-    x = torch.randn(2, 18)
-    model = EntangledVQC(x.shape[1], n_layers)
-    out = model(x)
-    print(out.shape)
-
-
-
-
