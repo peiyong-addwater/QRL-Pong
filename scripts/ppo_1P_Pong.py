@@ -14,7 +14,7 @@ import tyro
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from stable_baselines3.common.atari_wrappers import (  # isort:skip
+from stable_baselines3.common.atari_wrappers import (
     ClipRewardEnv,
     EpisodicLifeEnv,
     FireResetEnv,
@@ -22,10 +22,10 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
     NoopResetEnv,
 )
 
-from model import ( # isort:skip
-    Backbone,
-    ClassicalPPOAgentWithPlaceholder,
-    ClassicalPPOAgentWithPlaceholderSineless,
+from model.models2 import (
+    Backbone512 as Backbone,
+    # ClassicalPPOAgentWithPlaceholder,
+    # ClassicalPPOAgentWithPlaceholderSineless,
     EntangledPPOAgent,
     SeparablePPOAgent
 )
@@ -51,7 +51,7 @@ class Args:
     """whether to capture videos of the agent performances (check out `videos` folder)"""
 
     # Agent specific arguments
-    agent_type: str = "classicalNNSineActor"
+    agent_type: str = "entangledActor"
     """the type of the agent, choose from ['classicalNNSineActor', 'classicalNNSinelessActor', 'entangledActor', 'separableActor'] """
     backbone_out_dim: int = 12
     """the output dimension of the backbone network"""
@@ -138,9 +138,9 @@ if __name__ == "__main__":
     
     # agent model selection
     if args.agent_type == "classicalNNSineActor":
-        Agent = ClassicalPPOAgentWithPlaceholder
+        raise NotImplementedError("classicalNNSineActor is not implemented for simplified backbone yet")
     elif args.agent_type == "classicalNNSinelessActor":
-        Agent = ClassicalPPOAgentWithPlaceholderSineless
+        raise NotImplementedError("classicalNNSinelessActor is not implemented for simplified backbone yet")
     elif args.agent_type == "entangledActor":
         Agent = EntangledPPOAgent
     elif args.agent_type == "separableActor":
@@ -157,17 +157,16 @@ if __name__ == "__main__":
             assert args.pretrained_backbone_path is not None, "pretrained_backbone_path must be provided for entangled and separable agents when from_scratch is False"
             assert args.backbone_type in ["sineActor", "sinelessActor"], "backbone_type must be one of ['sineActor', 'sinelessActor']"
         if args.from_scratch is True:
-            if args.pretrained_backbone_path is not None:
-                print("Warning: pretrained_backbone_path is provided, but from_scratch is True, this will not use the pretrained backbone")
+            raise ValueError("Pretrained backbone is not supported now, please set from_scratch=True")
         
     args.n_layers = int(args.backbone_out_dim**2/(args.backbone_out_dim/3*3))
     args.batch_size = int(args.num_envs * args.num_steps)
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong1PExtendedTrainingTime__Dim__{args.backbone_out_dim}"
+    args.wandb_project_name = f"Pong1PExtendedTrainingTimeSimplifiedBackbone__Dim__{args.backbone_out_dim}"
 
-    run_name = f"Pong1P_{args.agent_type}_{"fromScratch" if args.from_scratch else args.backbone_type+"PretrainedBackbone"}{"_actorWeightsClamped" if args.clamp_actor_weights else ""}_seed_{args.seed}__{int(time.time())}"
+    run_name = f"Pong1PSimpifiedBackbone_{args.agent_type}_{"fromScratch" if args.from_scratch else args.backbone_type+"PretrainedBackbone"}{"_actorWeightsClamped" if args.clamp_actor_weights else ""}_seed_{args.seed}__{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):
@@ -212,21 +211,7 @@ if __name__ == "__main__":
 
     # load pretrained backbone
     if not args.from_scratch:
-        if args.backbone_type == "sineActor":
-            trained_agent = ClassicalPPOAgentWithPlaceholder(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=Backbone(out_dim=args.backbone_out_dim), pretrained_backbone=False)
-            trained_agent.load_state_dict(torch.load(args.pretrained_backbone_path))
-            print(f"Loaded pretrained backbone from {args.pretrained_backbone_path}")
-            # extract the backbone
-            backbone = trained_agent.backbone
-        elif args.backbone_type == "sinelessActor":
-            trained_agent = ClassicalPPOAgentWithPlaceholderSineless(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=Backbone(out_dim=args.backbone_out_dim), pretrained_backbone=False)
-            trained_agent.load_state_dict(torch.load(args.pretrained_backbone_path))
-            print(f"Loaded pretrained backbone from {args.pretrained_backbone_path}")
-            # extract the backbone
-            backbone = trained_agent.backbone
-        else:
-            raise ValueError("backbone_type must be one of ['sineActor', 'sinelessActor']")
-        agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, backbone=backbone, pretrained_backbone=True).to(device)
+        raise ValueError("Pretrained backbone is not supported now, please set from_scratch=True")
     else:
         backbone = Backbone(out_dim=args.backbone_out_dim)
         agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone=backbone).to(device)
