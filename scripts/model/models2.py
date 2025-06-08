@@ -50,27 +50,24 @@ class SinusoidalActivation(nn.Module):
     def forward(self, x):
         return torch.sin(x)
 
-class Backbone(nn.Module):
+class Backbone512(nn.Module):
     """
     The backbone classical NN for extracting features from the Atari game screen.
     It takes grey scale images of size 84x84 as input.
     """
-    def __init__(self, out_dim):
+    def __init__(self):
         super().__init__()
-        self.out_dim = out_dim
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(4, 32, 8, stride=4)),
+            layer_init(nn.Conv2d(4, 16, 8, stride=4)), # out: 20 * 20
             nn.ReLU(),
-            layer_init(nn.Conv2d(32, 64, 4, stride=2)),
-            nn.ReLU(),
-            layer_init(nn.Conv2d(64, 64, 3, stride=1)),
+            layer_init(nn.Conv2d(16, 32, 4, stride=2)), # out: 9 * 9
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(64 * 7 * 7, out_dim)),
+            layer_init(nn.Linear(32*9*9, 512)),
             # nn.ReLU(),
             # layer_init(nn.Linear(512, out_dim)),
             # nn.ReLU(),
-            ScaleToPi()
+            # ScaleToPi()
         )
     
     def forward(self, x):
@@ -78,33 +75,48 @@ class Backbone(nn.Module):
         # (num_envs, num_stacked_frames, 84, 84)
         return self.network(x)
 
-class Backbone2P(nn.Module):
+class Backbone2P512(nn.Module):
     """
     The backbone classical NN for extracting features from the Atari game screen.
     It takes grey scale images of size 84x84 as input.
     """
-    def __init__(self, out_dim):
+    def __init__(self):
         super().__init__()
-        self.out_dim = out_dim
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(6, 32, 8, stride=4)),
+            layer_init(nn.Conv2d(6, 16, 8, stride=4)), # out: 20 * 20
             nn.ReLU(),
-            layer_init(nn.Conv2d(32, 64, 4, stride=2)),
-            nn.ReLU(),
-            layer_init(nn.Conv2d(64, 64, 3, stride=1)),
+            layer_init(nn.Conv2d(16, 32, 4, stride=2)), # out: 9 * 9
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(64 * 7 * 7, out_dim)),
+            layer_init(nn.Linear(32*9*9, 512)),
             # nn.ReLU(),
             # layer_init(nn.Linear(512, out_dim)),
             # nn.ReLU(),
-            ScaleToPi()
+            # ScaleToPi()
         )
     
     def forward(self, x):
         x = x.clone()
         x[:, :, :, [0, 1, 2, 3]] /= 255.0
         return self.network(x.permute((0, 3, 1, 2)))
+
+class Critic512Input(nn.Module):
+    """
+    The critic network for the PPO agent.
+    It takes the output of the backbone as input.
+    """
+    def __init__(self):
+        super().__init__()
+        self.network = nn.Sequential(
+            layer_init(nn.Linear(512, 256)),
+            nn.ReLU(),
+            layer_init(nn.Linear(256, 1), std=1)
+        )
+    
+    def forward(self, x):
+        return self.network(x)
+
+
 
 class Placeholder4VQC(nn.Module):
     """
@@ -280,6 +292,7 @@ class SeparablePPOAgent(nn.Module):
         assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.circ_qubits = math.ceil(backbone_out_dim/3)
         self.circ_out_dim = self.circ_qubits * 3
+        self.circ_in_dim = self.circ_qubits * 3
         if not pretrained_backbone:
             self.backbone = backbone
         else:
@@ -287,10 +300,12 @@ class SeparablePPOAgent(nn.Module):
             for param in self.backbone.parameters():
                 param.requires_grad = False
         self.actor = nn.Sequential(
-            SeparableVQC(backbone_out_dim, n_layers),
+            layer_init(nn.Linear(512, backbone_out_dim), std=0.01), # classical pre-processing
+            ScaleToPi(),
+            SeparableVQC(self.circ_in_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
             )
-        self.critic = layer_init(nn.Linear(backbone_out_dim, 1), std=1)
+        self.critic = Critic512Input()
     
     def get_value(self, x):
         return self.critic(self.backbone(x/255.0))
@@ -390,6 +405,7 @@ class EntangledPPOAgent(nn.Module):
         assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.circ_qubits = math.ceil(backbone_out_dim/3)
         self.circ_out_dim = self.circ_qubits * 3
+        self.circ_in_dim = self.circ_qubits * 3
         if not pretrained_backbone:
             self.backbone = backbone
         else:
@@ -397,10 +413,12 @@ class EntangledPPOAgent(nn.Module):
             for param in self.backbone.parameters():
                 param.requires_grad = False
         self.actor = nn.Sequential(
+            layer_init(nn.Linear(512, backbone_out_dim), std=0.01), # classical pre-processing
+            ScaleToPi(),
             EntangledVQC(backbone_out_dim, n_layers),
             layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
             )
-        self.critic = layer_init(nn.Linear(backbone_out_dim, 1), std=1)
+        self.critic = Critic512Input()
     
     def get_value(self, x):
         return self.critic(self.backbone(x/255.0))
