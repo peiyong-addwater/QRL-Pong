@@ -238,9 +238,9 @@ if __name__ == "__main__":
 
     for iteration in range(1, args.num_iterations + 1):
         # track the histogram of parameters
-        for param_tensor in agent.state_dict():
+        #for param_tensor in agent.state_dict():
             #print(param_tensor, "\t", agent.state_dict()[param_tensor].size())
-            writer.add_histogram(f"3-Model-Params/{param_tensor}", agent.state_dict()[param_tensor], global_step)
+        #    writer.add_histogram(f"3-Model-Params/{param_tensor}", agent.state_dict()[param_tensor], global_step)
         # Annealing the rate if instructed to do so.
         if args.anneal_lr:
             frac = 1.0 - (iteration - 1.0) / args.num_iterations
