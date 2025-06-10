@@ -30,19 +30,19 @@ command_list = [
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights --seed 1",
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights --seed 2",
     "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights --seed 3",
-    # "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights --seed 4",
+    "uv run ppo_1P_Pong.py --agent_type 'entangledActor' --from_scratch --no-clamp_actor_weights --seed 4",
     # "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --clamp_actor_weights",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 0",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 1",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 2",
     "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 3",
-    # "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 4",
+    "uv run ppo_1P_Pong.py --agent_type 'separableActor' --from_scratch --no-clamp_actor_weights --seed 4",
 ]
 
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    n_workers = len(command_list) if len(command_list) < 30 else 30
+    n_workers = len(command_list) if len(command_list) < 12 else 12
 
     print("======= commands to run:")
     for command in command_list:
