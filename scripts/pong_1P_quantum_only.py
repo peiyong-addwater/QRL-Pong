@@ -24,8 +24,6 @@ from stable_baselines3.common.atari_wrappers import (
 
 from model.models2 import (
     Backbone512 as Backbone,
-    # ClassicalPPOAgentWithPlaceholder,
-    # ClassicalPPOAgentWithPlaceholderSineless,
     EntangledPPOAgent,
     SeparablePPOAgent
 )
@@ -133,11 +131,7 @@ if __name__ == "__main__":
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
     
     # agent model selection
-    if args.agent_type == "classicalNNSineActor":
-        raise NotImplementedError("classicalNNSineActor is not implemented for simplified backbone yet")
-    elif args.agent_type == "classicalNNSinelessActor":
-        raise NotImplementedError("classicalNNSinelessActor is not implemented for simplified backbone yet")
-    elif args.agent_type == "entangledActor":
+    if args.agent_type == "entangledActor":
         Agent = EntangledPPOAgent
     elif args.agent_type == "separableActor":
         Agent = SeparablePPOAgent
@@ -151,7 +145,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1PQuantumOnly__Dim__{args.backbone_out_dim}"
 
-    run_name = f"Pong1P_{args.agent_type}__QLayers__{args.n_layers}__{"_actorWeightsClamped" if args.clamp_actor_weights else ""}_seed_{args.seed}_{int(time.time())}"
+    run_name = f"Pong1P_{args.agent_type}_QLayers_{args.n_layers}_{"_ActorWeightsClamped" if args.clamp_actor_weights else ""}__seed_{args.seed}_{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):

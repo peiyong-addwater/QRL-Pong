@@ -58,16 +58,10 @@ class Backbone512(nn.Module):
     def __init__(self):
         super().__init__()
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(4, 16, 8, stride=4)), # out: 20 * 20
-            nn.ReLU(),
-            layer_init(nn.Conv2d(16, 32, 4, stride=2)), # out: 9 * 9
+            layer_init(nn.Conv2d(4, 32, 8, stride=4)), # out: 20 * 20
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(32*9*9, 512)),
-            # nn.ReLU(),
-            # layer_init(nn.Linear(512, out_dim)),
-            # nn.ReLU(),
-            # ScaleToPi()
+            layer_init(nn.Linear(32*20*20, 512)),
         )
     
     def forward(self, x):
@@ -83,16 +77,10 @@ class Backbone2P512(nn.Module):
     def __init__(self):
         super().__init__()
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(6, 16, 8, stride=4)), # out: 20 * 20
-            nn.ReLU(),
-            layer_init(nn.Conv2d(16, 32, 4, stride=2)), # out: 9 * 9
+            layer_init(nn.Conv2d(4, 32, 8, stride=4)), # out: 20 * 20
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(32*9*9, 512)),
-            # nn.ReLU(),
-            # layer_init(nn.Linear(512, out_dim)),
-            # nn.ReLU(),
-            # ScaleToPi()
+            layer_init(nn.Linear(32*20*20, 512)),
         )
     
     def forward(self, x):
@@ -117,22 +105,6 @@ class Critic512Input(nn.Module):
         return self.network(x)
 
 
-
-class Placeholder4VQC(nn.Module):
-    """
-    A placeholder linear layer to replace the VQC system.
-    With sinusoidal activation function.
-    """
-    def __init__(self, in_out_dim, n_layers=None):
-        super().__init__()
-        self.placeholder = nn.Sequential(
-            layer_init(nn.Linear(in_out_dim, in_out_dim, bias=False)),
-            SinusoidalActivation()
-        )
-        
-    def forward(self, x):
-        return self.placeholder(x)
-
 class Placeholder4VQCSineless(nn.Module):
     """
     A placeholder linear layer to replace the VQC system.
@@ -146,77 +118,6 @@ class Placeholder4VQCSineless(nn.Module):
         
     def forward(self, x):
         return self.placeholder(x)
-
-class ClassicalPPOAgentWithPlaceholderSineless(nn.Module):
-    def __init__(self, envs, n_layers=None, backbone_out_dim = 30, backbone = None , pretrained_backbone = False):
-        super().__init__()
-        n_actions = envs.single_action_space.n
-        assert backbone is not None, "backbone is not provided"
-        assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
-        assert pretrained_backbone == False, "pretrained_backbone is not supported"
-        self.circ_qubits = math.ceil(backbone_out_dim/3)
-        self.circ_out_dim = self.circ_qubits * 3
-        if not pretrained_backbone:
-            self.backbone = backbone
-        else:
-            self.backbone = backbone
-            for param in self.backbone.parameters():
-                param.requires_grad = False
-        self.actor = nn.Sequential(
-            Placeholder4VQCSineless(backbone_out_dim, n_layers),
-            layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
-            )
-        self.critic = layer_init(nn.Linear(backbone_out_dim, 1), std=1)
-    
-    def get_value(self, x):
-        return self.critic(self.backbone(x/255.0))
-
-    def get_action_and_value(self, x, action=None):
-        hidden = self.backbone(x/255.0)
-        logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
-    
-    def get_backbone(self):
-        return self.backbone
-
-
-class ClassicalPPOAgentWithPlaceholder(nn.Module):
-    def __init__(self, envs, n_layers=None, backbone_out_dim = 30, backbone = None , pretrained_backbone = False):
-        super().__init__()
-        n_actions = envs.single_action_space.n
-        assert backbone is not None, "backbone is not provided"
-        assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
-        assert pretrained_backbone == False, "pretrained_backbone is not supported"
-        self.circ_qubits = math.ceil(backbone_out_dim/3)
-        self.circ_out_dim = self.circ_qubits * 3
-        if not pretrained_backbone:
-            self.backbone = backbone
-        else:
-            self.backbone = backbone
-            for param in self.backbone.parameters():
-                param.requires_grad = False
-        self.actor = nn.Sequential(
-            Placeholder4VQC(backbone_out_dim, n_layers),
-            layer_init(nn.Linear(self.circ_out_dim, n_actions), std=0.01) # classical post-processing
-            )
-        self.critic = layer_init(nn.Linear(backbone_out_dim, 1), std=1)
-    
-    def get_value(self, x):
-        return self.critic(self.backbone(x/255.0))
-
-    def get_action_and_value(self, x, action=None):
-        hidden = self.backbone(x/255.0)
-        logits = self.actor(hidden)
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
-    
-    def get_backbone(self):
-        return self.backbone
 
 def make_separable_vqc_sys(n_layers, n_qubits)->callable:
     """
