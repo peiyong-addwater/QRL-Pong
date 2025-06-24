@@ -57,8 +57,6 @@ class Args:
     """the number of layers in the quantum actor network"""
     model_save_path: str = None
     """the path to save the model"""
-    clamp_actor_weights: bool = False
-    """if toggled, the quantum actor weights will be clamped to [-pi, pi]. Only used for quantum-classical hybrid agents"""
 
     # Algorithm specific arguments
     env_id: str = "PongNoFrameskip-v4"
@@ -129,6 +127,7 @@ if __name__ == "__main__":
     args = tyro.cli(Args)
     assert args.env_id == "PongNoFrameskip-v4", "env_id must be PongNoFrameskip-v4"
     assert args.backbone_out_dim / 3 == int(args.backbone_out_dim / 3), "backbone_out_dim must be a multiple of 3"
+    args.clamp_actor_weights = False
     
     # agent model selection
     if args.agent_type == "entangledActor":
@@ -145,7 +144,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1PQuantumOnly__Dim__{args.backbone_out_dim}"
 
-    run_name = f"Pong1P_{args.agent_type}_QLayers_{args.n_layers}_{"_ActorWeightsClamped" if args.clamp_actor_weights else ""}__seed_{args.seed}_{int(time.time())}"
+    run_name = f"Pong1P_{args.agent_type}_QLayers_{args.n_layers}___seed_{args.seed}_{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):
