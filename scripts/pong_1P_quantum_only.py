@@ -23,7 +23,7 @@ from stable_baselines3.common.atari_wrappers import (
 )
 
 from model.models2 import (
-    Backbone512 as Backbone,
+    Backbone,
     EntangledPPOAgent,
     SeparablePPOAgent
 )
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    backbone = Backbone()
+    backbone = Backbone(backbone_out_dim=args.backbone_out_dim)
     agent = Agent(envs, n_layers=args.n_layers, backbone_out_dim=args.backbone_out_dim, pretrained_backbone=False, backbone=backbone).to(device)
     print("Training backbone from scratch")
     
