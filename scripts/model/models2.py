@@ -59,10 +59,10 @@ class Backbone(nn.Module):
         super().__init__()
         self.out_dim = backbone_out_dim
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(4, 8, 8, stride=4)), # out: 20 * 20
+            layer_init(nn.Conv2d(in_channels=4, out_channels=8, kernel_size=8, stride=4)), # out: 20 * 20
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(8*20*20, self.out_dim), std=1), # out: backbone_out_dim
+            layer_init(nn.Linear(in_features=8*20*20, out_features=self.out_dim), std=1), # out: backbone_out_dim
         )
     
     def forward(self, x):
