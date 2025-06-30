@@ -60,10 +60,10 @@ class Backbone(nn.Module):
         self.out_dim = backbone_out_dim
         self.network = nn.Sequential(
             #TODO: reduce the number of output channels.
-            layer_init(nn.Conv2d(4, 32, 8, stride=4)), # out: 20 * 20
+            layer_init(nn.Conv2d(4, 8, 8, stride=4)), # out: 20 * 20
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(32*20*20, self.out_dim), std=1), # out: backbone_out_dim
+            layer_init(nn.Linear(8*20*20, self.out_dim), std=1), # out: backbone_out_dim
         )
     
     def forward(self, x):
