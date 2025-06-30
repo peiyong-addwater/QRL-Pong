@@ -5,6 +5,7 @@ import subprocess
 import uuid
 from dataclasses import dataclass
 from typing import List, Optional
+import re
 
 import requests
 import tyro
@@ -27,16 +28,42 @@ seeds_list = [0, 1, 2, 3, 4]
 
 n_layers_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-
 command_list = []
+
+entangled_finished = set()
+separable_finished = set()
+
+# the (QLayers, seed) combo that has been finished 
+trained_models_dir = os.path.join("trained-models", "Pong1PModels")
+for trained_model_file in os.listdir(trained_models_dir):
+    # process entangledActor models
+    if "entangledActor" in trained_model_file:
+        # find teh number of layers and seed with regex
+        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+        if match:
+            n_layers = int(match.group(1))
+            seed = int(match.group(2))
+            entangled_finished.add((n_layers, seed))
+            print(f"Found entangledActor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+    # process separableActor models
+    if "separableActor" in trained_model_file:
+        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+        if match:
+            n_layers = int(match.group(1))
+            seed = int(match.group(2))
+            separable_finished.add((n_layers, seed))
+            print(f"Found separableActor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+
 
 for n_layers in n_layers_list:
     for seed in seeds_list:
-        command_list.append(
-            f"uv run pong_1P_quantum_only.py --agent_type 'entangledActor' --seed {seed} --n_layers {n_layers}"
-        )
-        command_list.append(
-            f"uv run pong_1P_quantum_only.py --agent_type 'separableActor' --seed {seed} --n_layers {n_layers}"
+        if (n_layers, seed) not in entangled_finished:
+            command_list.append(
+                f"uv run pong_1P_quantum_only.py --agent_type 'entangledActor' --seed {seed} --n_layers {n_layers}"
+            )
+        if (n_layers, seed) not in separable_finished:
+            command_list.append(
+                f"uv run pong_1P_quantum_only.py --agent_type 'separableActor' --seed {seed} --n_layers {n_layers}"
         )
 
 if __name__ == "__main__":
