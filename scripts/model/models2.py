@@ -78,7 +78,7 @@ class Critic(nn.Module):
     def __init__(self, backbone_out_dim:int):
         super().__init__()
         self.network = nn.Sequential(
-            layer_init(nn.Linear(backbone_out_dim, backbone_out_dim*2)),
+            layer_init(nn.Linear(backbone_out_dim, backbone_out_dim*2), std=1),
             nn.ReLU(),
             layer_init(nn.Linear(backbone_out_dim*2, 1), std=1)
         )
