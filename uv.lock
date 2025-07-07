@@ -1113,15 +1113,6 @@ wheels = [
 ]
 
 [[package]]
-name = "multi-agent-ale-py"
-version = "0.1.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8a/a1/92127ae8088e45a90a04c5a334db8ddac71815a968884b663bc53416cff6/multi-agent-ale-py-0.1.11.tar.gz", hash = "sha256:ba3ff800420f65ff354574975bdfa79035ae1597e8938b37d1df12ffc4122edb", size = 551973, upload-time = "2021-05-24T21:01:43.122Z" }
-
-[[package]]
 name = "nest-asyncio"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1716,19 +1707,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pettingzoo"
-version = "1.25.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "gymnasium" },
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/38/cb/cbb8d0e973b284f709ce93a80354d464588301957220f031c51324b464b2/pettingzoo-1.25.0.tar.gz", hash = "sha256:4b8a8552eab07a9c8f37dca094e59ee194003c57e2a7e7348bdf7c62049eecf6", size = 723959, upload-time = "2025-04-22T14:37:37.36Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d3/9a/33fb244264573687ef27b2f436ae98b524c5e8e5edc7c36183a59c5b4748/pettingzoo-1.25.0-py3-none-any.whl", hash = "sha256:f385bccbebdad73a0c3da884344aea6e2614aa962b653c790b06ef9ab162d651", size = 852489, upload-time = "2025-04-22T14:37:36.036Z" },
-]
-
-[[package]]
 name = "pillow"
 version = "11.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2001,10 +1979,8 @@ dependencies = [
     { name = "gymnasium", extra = ["all"] },
     { name = "jax", version = "0.5.3", source = { registry = "https://pypi.org/simple" }, extra = ["cuda12"], marker = "platform_machine != 'aarch64' and sys_platform == 'linux'" },
     { name = "jax", version = "0.6.1", source = { registry = "https://pypi.org/simple" }, extra = ["cuda12"], marker = "platform_machine == 'aarch64' or sys_platform != 'linux'" },
-    { name = "multi-agent-ale-py" },
     { name = "opencv-python" },
     { name = "pennylane" },
-    { name = "pettingzoo" },
     { name = "pygame" },
     { name = "skrl" },
     { name = "stable-baselines3", extra = ["extra"] },
@@ -2026,10 +2002,8 @@ requires-dist = [
     { name = "flax", specifier = ">=0.10.5" },
     { name = "gymnasium", extras = ["all"], specifier = ">=1.1.1" },
     { name = "jax", extras = ["cuda12"], specifier = ">=0.5.3" },
-    { name = "multi-agent-ale-py", specifier = ">=0.1.11" },
     { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "pennylane", specifier = ">=0.41.0" },
-    { name = "pettingzoo", specifier = ">=1.24.3" },
     { name = "pygame", specifier = ">=2.6.1" },
     { name = "skrl", specifier = ">=1.4.3" },
     { name = "stable-baselines3", extras = ["extra"], specifier = ">=2.6.0" },
