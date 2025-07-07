@@ -98,6 +98,12 @@ def make_separable_vqc_sys(n_layers, n_qubits)->callable:
     obs_list = []
 
     # single-qubit observables
+    # length of the list:
+    # 3*n_qubits + (n_qubits+2)*(n_qubits-1)/2
+    # i.e. for 4 qubits:
+    # 3*4 + (4+2)*(4-1)/2 = 12 + 6 = 18
+    # two-qubit observables (starting from 1):
+    # (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)
     for i in range(n_qubits):
         obs_list.append(qml.PauliX(i))
         obs_list.append(qml.PauliY(i))
@@ -105,7 +111,7 @@ def make_separable_vqc_sys(n_layers, n_qubits)->callable:
     # non-local observables
     for i in range(n_qubits):
         for j in range(n_qubits):
-            if i > j:
+            if i < j:
                 obs_list.append(qml.PauliX(i) @ qml.PauliX(j))
                 obs_list.append(qml.PauliY(i) @ qml.PauliY(j))
                 obs_list.append(qml.PauliZ(i) @ qml.PauliZ(j))
@@ -229,7 +235,8 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
     # non-local observables
     for i in range(n_qubits):
         for j in range(n_qubits):
-            if i > j:
+            if i < j:
+                # print((i,j))
                 obs_list.append(qml.PauliX(i) @ qml.PauliX(j))
                 obs_list.append(qml.PauliY(i) @ qml.PauliY(j))
                 obs_list.append(qml.PauliZ(i) @ qml.PauliZ(j))
@@ -345,14 +352,14 @@ class EntangledPPOAgent(nn.Module):
 if __name__ == "__main__":
     # test the single-qubit VQC system
     n_layers = 18
-    n_qubits = 6
+    n_qubits = 4
     features = torch.randn(10 ,n_qubits, 3)
     weights = torch.randn(n_qubits, n_layers, 3)
     circuit = make_entangled_vqc_sys(n_layers, n_qubits)
     out = circuit(features, weights)
     # print(out)
     print(out.shape)
-    x = torch.randn(2, 18)
+    x = torch.randn(2, 3*n_qubits)
     model = EntangledVQC(x.shape[1], n_layers)
     out = model(x)
     print(out.shape)
