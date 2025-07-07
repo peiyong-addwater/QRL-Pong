@@ -27,6 +27,8 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
         torch.nn.init.constant_(layer.bias, bias_const)
     return layer
 
+
+
 class ScaleToPi(nn.Module):
     """
     Scale the input to [0, 2*pi]
@@ -92,43 +94,66 @@ def make_separable_vqc_sys(n_layers, n_qubits)->callable:
     """
     Construct n single-qubit VQC systems, each with n_layers.
     """
-    device = qml.device("default.qubit", wires = 1)
+
+    obs_list = []
+
+    # single-qubit observables
+    for i in range(n_qubits):
+        obs_list.append(qml.PauliX(i))
+        obs_list.append(qml.PauliY(i))
+        obs_list.append(qml.PauliZ(i))
+    # non-local observables
+    for i in range(n_qubits):
+        for j in range(n_qubits):
+            if i > j:
+                obs_list.append(qml.PauliX(i) @ qml.PauliX(j))
+                obs_list.append(qml.PauliY(i) @ qml.PauliY(j))
+                obs_list.append(qml.PauliZ(i) @ qml.PauliZ(j))
+
+    device = qml.device("default.qubit", wires = n_qubits)
     @qml.qnode(device, interface="torch")
-    def single_qubit_circ(features, weights):
+    def separable_circ_nonlocal_obs(features, weights):
         """
-        features has shape (..., 3) since we are using 3-parameter single-qubit gates to encode the data.
-        weights has shape (..., n_layers, 3)  since the trainable gates are also single-qubit with 3 parameters.
-        the circuit starts from the |+> state.
+        features has shape (...,n_qubits, 3) since we are using 3-parameter single-qubit gates to encode the data.
+        weights has shape (..., n_qubits, n_layers, 3)  since the trainable gates are also single-qubit with 3 parameters.
         """
         assert weights.shape[-2] == n_layers, f"weights shape {weights.shape} does not match n_layers {n_layers}"
-        qml.Hadamard(wires=0)
+        assert weights.shape[-3] == n_qubits, f"weights shape {weights.shape} does not match n_qubits {n_qubits}"
+
+        for i in range(n_qubits):
+            qml.Hadamard(wires=i)
         for i in range(n_layers):
-            weights_layer_i = weights[...,i,:]
-            # encode the data with the qml.U3 gate
-            qml.Rot(features[...,0], features[...,1], features[...,2], wires=0)
+            weights_layer_i = weights[...,:,i,:] # has shape (..., n_qubits, 3)
+            # encode the data with the qml.Rot gate
+            for j in range(n_qubits):
+                qml.Rot(features[...,j,0], features[...,j,1], features[...,j,2], wires=j)
             # trainable weights
-            qml.U3(weights_layer_i[...,0], weights_layer_i[...,1], weights_layer_i[...,2], wires=0)
+            for j in range(n_qubits):
+                qml.U3(weights_layer_i[...,j,0], weights_layer_i[...,j,1], weights_layer_i[...,j,2], wires=j)
         
-        return qml.expval(qml.PauliX(0)), qml.expval(qml.PauliY(0)), qml.expval(qml.PauliZ(0))
-    
-    single_qubit_circ_func = lambda features, weights: torch.stack(single_qubit_circ(features, weights))
-    # vmap along the number of qubits
-    vmap_single_qubit_circ_func = torch.vmap(single_qubit_circ_func, in_dims=(-2, -3))
+        # measure the observables
+        return [qml.expval(obs) for obs in obs_list]
+
+    # not sure whether compiling the circuit will cause trouble
+    # it does flattened the measurement results
+    # i.e. changed the (stacked) shape of the output from (n_qubits, 3, batch_size) to (3*n_qubits, batch_size)
+    compiled_circuit = qml.compile(separable_circ_nonlocal_obs)
+    qnode = qml.QNode(compiled_circuit, device, interface="torch")
+
 
     def circuit(features, weights):
         """
         features has shape (..., n_qubits, 3)
         weights has shape (..., n_qubits, n_layers, 3)
-        reuse the single-qubit circuit to avoid large state vectors.
         """
         assert features.shape[-1] == 3, f"features shape {features.shape} does not match 3"
         assert weights.shape[-2] == n_layers, f"weights shape {weights.shape} does not match n_layers {n_layers}"
         assert weights.shape[-3] == n_qubits, f"weights shape {weights.shape} does not match n_qubits {n_qubits}"
-
-        circ_out = vmap_single_qubit_circ_func(features, weights)
-        circ_out = torch.einsum("ijk->kij", circ_out)
+        circ_out = qnode(features, weights)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
         return circ_out
-    
+
     return circuit
 
 class SeparableVQC(nn.Module):
@@ -193,6 +218,22 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
     Construct a single VQC system with n_layers and n_qubits.
     Entanglement is introduced by the CNOT gates in a ring topology.
     """
+
+    obs_list = []
+
+    # single-qubit observables
+    for i in range(n_qubits):
+        obs_list.append(qml.PauliX(i))
+        obs_list.append(qml.PauliY(i))
+        obs_list.append(qml.PauliZ(i))
+    # non-local observables
+    for i in range(n_qubits):
+        for j in range(n_qubits):
+            if i > j:
+                obs_list.append(qml.PauliX(i) @ qml.PauliX(j))
+                obs_list.append(qml.PauliY(i) @ qml.PauliY(j))
+                obs_list.append(qml.PauliZ(i) @ qml.PauliZ(j))
+
     device = qml.device("default.qubit", wires = n_qubits)
     
     def entangled_circ(features, weights):
@@ -221,7 +262,7 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
                 for k in range(n_qubits):
                     if j > k:
                         qml.CZ(wires=[j, k])
-        return [[qml.expval(qml.PauliX(i)), qml.expval(qml.PauliY(i)), qml.expval(qml.PauliZ(i))] for i in range(n_qubits)]
+        return [qml.expval(obs) for obs in obs_list]
     
     # not sure whether compiling the circuit will cause trouble
     # it does flattened the measurement results
@@ -301,3 +342,17 @@ class EntangledPPOAgent(nn.Module):
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
 
+if __name__ == "__main__":
+    # test the single-qubit VQC system
+    n_layers = 18
+    n_qubits = 6
+    features = torch.randn(10 ,n_qubits, 3)
+    weights = torch.randn(n_qubits, n_layers, 3)
+    circuit = make_entangled_vqc_sys(n_layers, n_qubits)
+    out = circuit(features, weights)
+    # print(out)
+    print(out.shape)
+    x = torch.randn(2, 18)
+    model = EntangledVQC(x.shape[1], n_layers)
+    out = model(x)
+    print(out.shape)
