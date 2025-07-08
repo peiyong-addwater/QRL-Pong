@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+n_layers_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 command_list = []
 
@@ -69,7 +69,7 @@ for n_layers in n_layers_list:
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    n_workers = len(command_list) if len(command_list) < 20 else 20
+    n_workers = len(command_list) if len(command_list) < 30 else 30
 
     print("======= commands to run:")
     for command in command_list:

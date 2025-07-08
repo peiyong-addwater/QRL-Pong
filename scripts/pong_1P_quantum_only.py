@@ -22,7 +22,7 @@ from stable_baselines3.common.atari_wrappers import (
     NoopResetEnv,
 )
 
-from model.models2 import (
+from model.models3 import (
     Backbone,
     EntangledPPOAgent,
     SeparablePPOAgent
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong1PQuantumOnly__Dim__{args.backbone_out_dim}"
+    args.wandb_project_name = f"Pong1PQuantumOnlyNonlocalObs__Dim__{args.backbone_out_dim}"
 
     run_name = f"Pong1P_{args.agent_type}_QLayers_{args.n_layers}___seed_{args.seed}_{int(time.time())}"
 
