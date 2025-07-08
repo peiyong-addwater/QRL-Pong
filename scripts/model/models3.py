@@ -97,13 +97,9 @@ def make_separable_vqc_sys(n_layers, n_qubits)->callable:
 
     obs_list = []
 
-    # single-qubit observables
     # length of the list:
-    # 3*n_qubits + (n_qubits+2)*(n_qubits-1)/2
-    # i.e. for 4 qubits:
-    # 3*4 + (4+2)*(4-1)/2 = 12 + 6 = 18
-    # two-qubit observables (starting from 1):
-    # (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)
+    # 3*n_qubits + 3*n_qubits*(n_qubits-1)/2
+    # single-qubit observables
     for i in range(n_qubits):
         obs_list.append(qml.PauliX(i))
         obs_list.append(qml.PauliY(i))
@@ -183,6 +179,7 @@ class SeparableVQC(nn.Module):
         out = self.circuit(x, self.q_params).to(x.dtype)
         # flatten the output
         out = out.flatten(start_dim=1)
+        # out has shape (batch_size, 3*n_qubits+ 3*n_qubits*(n_qubits-1)/2)
         return out
 
 class SeparablePPOAgent(nn.Module):
@@ -193,7 +190,7 @@ class SeparablePPOAgent(nn.Module):
         assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.backbone_out_dim = backbone_out_dim
         self.circ_qubits = math.ceil(backbone_out_dim/3)
-        self.circ_out_dim = self.circ_qubits * 3
+        self.circ_out_dim = self.circ_qubits * 3 + 3 * self.circ_qubits * (self.circ_qubits - 1) // 2
         self.circ_in_dim = self.circ_qubits * 3
         if not pretrained_backbone:
             self.backbone = backbone
@@ -227,6 +224,8 @@ def make_entangled_vqc_sys(n_layers, n_qubits)->callable:
 
     obs_list = []
 
+    # length of the list:
+    # 3*n_qubits + 3*n_qubits*(n_qubits-1)/2
     # single-qubit observables
     for i in range(n_qubits):
         obs_list.append(qml.PauliX(i))
@@ -313,6 +312,7 @@ class EntangledVQC(nn.Module):
         out = self.circuit(x, self.q_params).to(x.dtype)
         # flatten the output
         out = out.flatten(start_dim=1)
+        # out has shape (batch_size, 3*n_qubits+ 3*n_qubits*(n_qubits-1)/2)
         return out
 
 class EntangledPPOAgent(nn.Module):
@@ -323,7 +323,7 @@ class EntangledPPOAgent(nn.Module):
         assert backbone.out_dim == backbone_out_dim, f"backbone output dimension {backbone.out_dim} does not match {backbone_out_dim}"
         self.backbone_out_dim = backbone_out_dim
         self.circ_qubits = math.ceil(backbone_out_dim/3)
-        self.circ_out_dim = self.circ_qubits * 3
+        self.circ_out_dim = self.circ_qubits * 3 + 3 * self.circ_qubits * (self.circ_qubits - 1) // 2
         self.circ_in_dim = self.circ_qubits * 3
         if not pretrained_backbone:
             self.backbone = backbone
