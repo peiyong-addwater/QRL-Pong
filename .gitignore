@@ -18,3 +18,5 @@ legacy_files/*
 wandb/*
 runs/*
 videos/*
+resources/*
+resources
