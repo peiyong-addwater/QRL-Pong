@@ -29,9 +29,11 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available. PyTorch will use the CPU for computations.")
 
+print("==========Starting Pong environment...==========")
 
 env = pong.Pong()
 obs, _ = env.reset()
+print("Action space:", env.single_action_space)
 test_count = 0
 while True:
     action = env.action_space.sample()
