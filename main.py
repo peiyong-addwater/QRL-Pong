@@ -2,6 +2,34 @@ from pufferlib.ocean.pong import pong
 
 import time
 
+import torch
+
+# Check if CUDA (GPU support) is available
+if torch.cuda.is_available():
+    print("CUDA is available. PyTorch can use the GPU.")
+    
+    # Get the number of available GPUs
+    num_gpus = torch.cuda.device_count()
+    print(f"Number of GPUs available: {num_gpus}")
+    
+    # Get the name of the current GPU
+    current_gpu_name = torch.cuda.get_device_name(0) # Assuming device 0 is being used
+    print(f"Current GPU in use: {current_gpu_name}")
+    
+    # Create a tensor and move it to the GPU to confirm
+    device = torch.device("cuda")
+    x = torch.randn(2, 3).to(device)
+    print(f"Tensor created on GPU: {x}")
+    print(f"Is tensor on CUDA device? {x.is_cuda}")
+    
+    # Perform a simple operation on the GPU
+    y = x * 2
+    print(f"Result of operation on GPU: {y}")
+    
+else:
+    print("CUDA is not available. PyTorch will use the CPU for computations.")
+
+
 env = pong.Pong()
 obs, _ = env.reset()
 while True:
