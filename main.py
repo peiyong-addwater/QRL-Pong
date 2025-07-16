@@ -32,6 +32,7 @@ else:
 
 env = pong.Pong()
 obs, _ = env.reset()
+test_count = 0
 while True:
     action = env.action_space.sample()
     obs, reward, terminated, truncated, info = env.step(action)
@@ -42,3 +43,7 @@ while True:
     print("Truncated:", truncated)
     print("Info:", info)
     time.sleep(1)
+    test_count += 1
+    if test_count > 10:
+        break
+env.close()
