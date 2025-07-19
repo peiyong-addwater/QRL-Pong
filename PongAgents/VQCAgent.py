@@ -59,6 +59,7 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
     qubit_list = [1, 0, 2, 3, 4, 5, 6, 7] # qubit #1 is the control qubit for GHZ state since it is the right paddle qubit
     # measurement observables
     if post_select:
+        # project all the qubits other than the second qubit onto |0>
         meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
         meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
         meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
@@ -80,6 +81,8 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
         
         U3Layer(params[l-1], qubit_list)
 
+        qml.adjoint(create_GHZ_state)(qubit_list)
+
         return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
 
     compiled_circuit = qml.compile(circuit)
@@ -99,14 +102,17 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
     
     return qfunc
 
-
+class GHZAgent(nn.Module):
+    def __init__(self, n_layers, env):
+        super().__init__()
+        single_action_dim = env.action_space.n
 
 if __name__ == "__main__":
     # Example usage
-    n_layers = 3
-    circuit = make_entangled_circ_ghz(n_layers)
+    n_layers = 6
+    circuit = make_entangled_circ_ghz(n_layers, post_select=False)
     
-    x = torch.tensor(np.random.rand(4, 8))
+    x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
     result = circuit(x, params)
     print("Circuit output shape:", result.shape)
