@@ -38,14 +38,17 @@ test_count = 0
 while True:
     action = env.action_space.sample()
     obs, reward, terminated, truncated, info = env.step(action)
-    print("Observation:", obs) # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+    # print("Observation:", obs) # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
     # right paddle is controlled by the agent
+    paddle_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r = obs[0]
+    print("Paddle YR:", paddle_yr, "; Paddle YL:", paddle_yl, "; Ball X:", ball_x, "; Ball Y:", ball_y, "; Ball VX:", ball_vx, "; Ball VY:", ball_vy, "; Score L:", score_l, "; Score R:", score_r)
+    print("Action taken:", action)
     print("Reward:", reward)
     print("Terminated:", terminated)
     print("Truncated:", truncated)
     print("Info:", info)
     time.sleep(1)
     test_count += 1
-    if test_count > 10:
+    if test_count > 1000:
         break
 env.close()
