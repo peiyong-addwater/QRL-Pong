@@ -102,6 +102,63 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
     
     return qfunc
 
+def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int]], post_select = True)->Callable:
+    """
+    Creates a parameterised circuit starting with a graph state.
+    """
+
+    assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
+
+    qubit_list = [0, 1, 2, 3, 4, 5, 6, 7]
+    for edge in edge_list:
+        assert edge[0] in qubit_list and edge[1] in qubit_list, "Both nodes must be in the qubit list. Got: {}, {}".format(edge[0], edge[1])
+    
+    device = qml.device("default.qubit", wires = 8)
+    # measurement observables
+    if post_select:
+        # project all the qubits other than the second qubit onto |0>
+        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+    else:
+        meas_x = qml.PauliX(1)
+        meas_y = qml.PauliY(1)
+        meas_z = qml.PauliZ(1)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 3)
+        """
+        create_graph_state(qubit_list, edge_list)
+
+        for l in range(n_layers - 1):
+            for i in range(8):
+                V_i_l(x[...,i], params[l][i][0], params[l][i][1], params[l][i][2], i)
+        
+        U3Layer(params[l-1], qubit_list)
+
+        qml.adjoint(create_graph_state)(qubit_list, edge_list)
+        
+        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+    
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 3), "Parameters must have shape (n_layers, 8, 3). Got: {}".format(params.shape)
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
+
+
 class GHZAgent(nn.Module):
     def __init__(self, n_layers, post_select, env):
         super().__init__()
@@ -120,12 +177,29 @@ class GHZAgent(nn.Module):
         out = self.qfunc(x, self.params).to(x.dtype)
         return out
 
+class GraphStateAgent(nn.Module):
+    def __init__(self, n_layers, edge_list, post_select, env):
+        super().__init__()
+        self.single_action_dim = env.action_space.n
+        self.observation_dim = env.single_observation_space.shape[0]
+        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
+        self.qfunc = make_entangled_circ_graph_state(n_layers, edge_list=edge_list, post_select=post_select)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 3), requires_grad=True)
+            )
+
+    def forward(self, x):
+        x = x * torch.pi
+        out = self.qfunc(x, self.params).to(x.dtype)
+        return out
 
 if __name__ == "__main__":
     # Example usage
     n_layers = 6
-    circuit = make_entangled_circ_ghz(n_layers, post_select=False)
+    edge_list = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
+    circuit = make_entangled_circ_graph_state(n_layers,edge_list=edge_list, post_select=False)
     
     x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
