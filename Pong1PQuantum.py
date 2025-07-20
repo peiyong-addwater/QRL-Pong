@@ -50,7 +50,7 @@ class Args:
     """total timesteps of the experiments"""
     learning_rate: float = 2.5e-4
     """the learning rate of the optimizer"""
-    num_envs: int = 2
+    num_envs: int = 32
     """the number of parallel game environments"""
     num_steps: int = 128
     """the number of steps to run in each environment per policy rollout"""
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     # env setup
     env_name = 'puffer_pong'
     env_creator = env_creator(env_name)
-    envs = vector.make(env_creator, num_envs=2, num_workers=2, batch_size=1, backend=vector.Multiprocessing, env_kwargs={'num_envs': args.num_envs, 'log_interval':1})
+    envs = vector.make(env_creator, num_envs=1, num_workers=1, batch_size=1, backend=vector.Multiprocessing, env_kwargs={'num_envs': args.num_envs, 'log_interval':1})
 
     agent = PongHybridAgent(
         agent_type=args.agent_type,

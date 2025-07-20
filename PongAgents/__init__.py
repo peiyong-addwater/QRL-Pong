@@ -1,1 +1,1 @@
-from .models import PongHybridAgent
+from .models import PongHybridAgent, PongClassicalCritic, GHZAgent, GraphStateAgent, SeparableAgent
