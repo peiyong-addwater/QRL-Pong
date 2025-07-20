@@ -158,6 +158,54 @@ def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int
     
     return qfunc
 
+def make_separable_circ(n_layers: int, post_select = True)->Callable:
+    """
+    Creates a parameterised circuit with no entanglement.
+    """
+    
+    assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
+
+    device = qml.device("default.qubit", wires = 8)
+
+    # measurement observables
+    if post_select:
+        # project all the qubits other than the second qubit onto |0>
+        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+    else:
+        meas_x = qml.PauliX(1)
+        meas_y = qml.PauliY(1)
+        meas_z = qml.PauliZ(1)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 3)
+        """
+        for l in range(n_layers - 1):
+            for i in range(8):
+                V_i_l(x[...,i], params[l][i][0], params[l][i][1], params[l][i][2], i)
+
+        U3Layer(params[l-1], [0, 1, 2, 3, 4, 5, 6, 7])
+        
+        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 3), "Parameters must have shape (n_layers, 8, 3). Got: {}".format(params.shape)
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
 
 class GHZAgent(nn.Module):
     def __init__(self, n_layers, post_select, env):
@@ -195,11 +243,32 @@ class GraphStateAgent(nn.Module):
         out = self.qfunc(x, self.params).to(x.dtype)
         return out
 
+class SeparableAgent(nn.Module):
+    def __init__(self, n_layers, post_select, env):
+        super().__init__()
+        self.single_action_dim = env.action_space.n
+        self.observation_dim = env.single_observation_space.shape[0]
+        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+
+        self.qfunc = make_separable_circ(n_layers, post_select=post_select)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 3), requires_grad=True)
+            )
+
+    def forward(self, x):
+        x = x * torch.pi
+        out = self.qfunc(x, self.params).to(x.dtype)
+        return out
+
 if __name__ == "__main__":
+    from pufferlib import vector
+    from pufferlib.ocean import env_creator
+
     # Example usage
     n_layers = 6
     edge_list = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
-    circuit = make_entangled_circ_graph_state(n_layers,edge_list=edge_list, post_select=False)
+    circuit = make_separable_circ(n_layers, post_select=False)
     
     x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)

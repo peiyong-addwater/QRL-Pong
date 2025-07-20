@@ -1,4 +1,7 @@
-from pufferlib.ocean.pong import pong
+import pufferlib
+from pufferlib import vector
+from pufferlib.ocean import env_creator
+
 
 import time
 
@@ -31,25 +34,36 @@ else:
 
 print("==========Starting Pong environment...==========")
 
-env = pong.Pong()
-obs, _ = env.reset()
-print("Action space:", env.single_action_space.n)
-print("Observation space:", env.single_observation_space.shape[0])
+env_name = 'puffer_pong'
+env_creator = env_creator(env_name)
+vecenv = vector.make(env_creator, num_envs=2, num_workers=2, batch_size=1,
+        backend=pufferlib.vector.Multiprocessing, env_kwargs={'num_envs': 4096})
+print("Action space:", vecenv.single_action_space.n)
+print("Observation space:", vecenv.single_observation_space.shape[0])
+
+obs, _ = vecenv.reset()
+
 test_count = 0
 while True:
-    action = env.action_space.sample()
-    obs, reward, terminated, truncated, info = env.step(action)
+    action = [vecenv.single_action_space.sample() for _ in range(vecenv.num_envs)]
+    obs, reward, terminated, truncated, info = vecenv.step(action)
     # print("Observation:", obs) # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
     # right paddle is controlled by the agent
+    print("Observation shape:", obs.shape)
+    print("Action shape:", len(action))
+    print("Reward shape:", reward.shape)
+    print("Terminated shape:", terminated.shape)
+    print("Truncated shape:", truncated.shape)
+    print("Info shape:", len(info))
     paddle_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r = obs[0]
-    print("Paddle YR:", paddle_yr, "; Paddle YL:", paddle_yl, "; Ball X:", ball_x, "; Ball Y:", ball_y, "; Ball VX:", ball_vx, "; Ball VY:", ball_vy, "; Score L:", score_l, "; Score R:", score_r)
-    print("Action taken:", action)
-    print("Reward:", reward)
-    print("Terminated:", terminated)
-    print("Truncated:", truncated)
-    print("Info:", info)
+    #print("Paddle YR:", paddle_yr, "; Paddle YL:", paddle_yl, "; Ball X:", ball_x, "; Ball Y:", ball_y, "; Ball VX:", ball_vx, "; Ball VY:", ball_vy, "; Score L:", score_l, "; Score R:", score_r)
+    # print("Action taken:", action)
+    #print("Reward:", reward)
+    #print("Terminated:", terminated)
+    #print("Truncated:", truncated)
+    #print("Info:", info)
     time.sleep(1)
     test_count += 1
-    if test_count > 1000:
+    if test_count > 10:
         break
-env.close()
+vecenv.close()
