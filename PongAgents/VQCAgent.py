@@ -2,9 +2,6 @@ import pennylane as qml
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.distributions import Categorical
 
 import numpy as np
 
@@ -208,10 +205,10 @@ def make_separable_circ(n_layers: int, post_select = True)->Callable:
     return qfunc
 
 class GHZAgent(nn.Module):
-    def __init__(self, n_layers, post_select, env):
+    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = env.action_space.n
-        self.observation_dim = env.single_observation_space.shape[0]
+        self.single_action_dim = action_space
+        self.observation_dim = observation_space
         assert self.single_action_dim == 3 # only 3 actions: up, down, no action
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
@@ -226,10 +223,10 @@ class GHZAgent(nn.Module):
         return out
 
 class GraphStateAgent(nn.Module):
-    def __init__(self, n_layers, edge_list, post_select, env):
+    def __init__(self, n_layers, edge_list, post_select, action_space, observation_space):
         super().__init__()
-        self.single_action_dim = env.action_space.n
-        self.observation_dim = env.single_observation_space.shape[0]
+        self.single_action_dim = action_space
+        self.observation_dim = observation_space
         assert self.single_action_dim == 3 # only 3 actions: up, down, no action
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
@@ -244,10 +241,10 @@ class GraphStateAgent(nn.Module):
         return out
 
 class SeparableAgent(nn.Module):
-    def __init__(self, n_layers, post_select, env):
+    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = env.action_space.n
-        self.observation_dim = env.single_observation_space.shape[0]
+        self.single_action_dim = action_space
+        self.observation_dim = observation_space
         assert self.single_action_dim == 3 # only 3 actions: up, down, no action
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
