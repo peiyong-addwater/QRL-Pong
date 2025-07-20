@@ -33,7 +33,8 @@ print("==========Starting Pong environment...==========")
 
 env = pong.Pong()
 obs, _ = env.reset()
-print("Action space:", env.single_action_space)
+print("Action space:", env.single_action_space.n)
+print("Observation space:", env.single_observation_space.shape[0])
 test_count = 0
 while True:
     action = env.action_space.sample()
