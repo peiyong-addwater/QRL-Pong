@@ -15,7 +15,7 @@ from PongAgents.models import AGENTS
 
 # Equivalent to running puffer train puffer_breakout
 def cli():
-    pufferl.train('puffer_breakout')
+    pufferl.train('puffer_pong')
 
 class Policy(torch.nn.Module):
     def __init__(self, env, agent_type, agent_args: dict = None):
@@ -41,6 +41,8 @@ class Policy(torch.nn.Module):
 
 # Managing your own trainer
 if __name__ == '__main__':
+    import pprint
+
     env_name = 'puffer_pong'
     agent_type = "graph_state"
     agent_args = {
@@ -56,11 +58,11 @@ if __name__ == '__main__':
     args = pufferl.load_config('default')
     args['train']['env'] = env_name
     args['wandb'] = True
-    print(args)
+    pprint.pprint(args)
 
     trainer = pufferl.PuffeRL(args['train'], vecenv, policy)
 
-    for epoch in range(100):
+    for epoch in range(10):
         trainer.evaluate()
         logs = trainer.train()
 
