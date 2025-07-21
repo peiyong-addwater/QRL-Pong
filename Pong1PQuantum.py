@@ -30,7 +30,7 @@ class Args:
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
     """the entity (team) of wandb's project"""
-    num_workers: int = 2
+    num_workers: int = 1
     """the number of workers to use for the vectorized environment"""
 
     # Agent specific arguments
