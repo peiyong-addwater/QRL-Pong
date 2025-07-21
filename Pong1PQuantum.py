@@ -36,7 +36,7 @@ class Args:
     # Agent specific arguments
     agent_type: str = "ghz"
     """the type of the agent, choose from ["ghz", "graph_state", "separable"] """
-    post_select: bool = True
+    post_select: bool = False
     """whether to use post-selection in the quantum agent"""
     n_layers: int = 2
     """the number of layers in the quantum actor network"""
