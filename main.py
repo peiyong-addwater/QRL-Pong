@@ -1,6 +1,7 @@
 import pufferlib
 from pufferlib import vector
 from pufferlib.ocean import env_creator
+from pufferlib.ocean.pong.pong import Pong
 
 
 import time
@@ -34,10 +35,11 @@ else:
 
 print("==========Starting Pong environment...==========")
 
+
 env_name = 'puffer_pong'
 env_creator = env_creator(env_name)
 vecenv = vector.make(env_creator, num_envs=2, num_workers=2, batch_size=1,
-        backend=pufferlib.vector.Multiprocessing, env_kwargs={'num_envs': 4096})
+        backend=pufferlib.vector.Multiprocessing, env_kwargs={'num_envs': 4, 'log_interval': 1, 'frameskip':100})
 print("Action space:", vecenv.single_action_space.n)
 print("Observation space:", vecenv.single_observation_space.shape[0])
 
@@ -45,6 +47,7 @@ obs, _ = vecenv.reset()
 
 test_count = 0
 while True:
+    print(f"==========Step {test_count+1} in Pong environment...==========")
     action = [vecenv.single_action_space.sample() for _ in range(vecenv.num_envs)]
     obs, reward, terminated, truncated, info = vecenv.step(action)
     # print("Observation:", obs) # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
@@ -54,16 +57,17 @@ while True:
     print("Reward shape:", reward.shape)
     print("Terminated shape:", terminated.shape)
     print("Truncated shape:", truncated.shape)
-    print("Info shape:", len(info))
+    #print("Info shape:", len(info))
+    #print(vars(vecenv))
     paddle_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r = obs[0]
     #print("Paddle YR:", paddle_yr, "; Paddle YL:", paddle_yl, "; Ball X:", ball_x, "; Ball Y:", ball_y, "; Ball VX:", ball_vx, "; Ball VY:", ball_vy, "; Score L:", score_l, "; Score R:", score_r)
     # print("Action taken:", action)
-    #print("Reward:", reward)
-    #print("Terminated:", terminated)
-    #print("Truncated:", truncated)
-    #print("Info:", info)
+    print("Reward:", reward)
+    print("Terminated:", terminated)
+    print("Truncated:", truncated)
+    print("Info:", info) # something like [{'perf': 0.0, 'score': -21.0, 'episode_return': -21.0, 'episode_length': 1.0, 'n': 1.0}]
     time.sleep(1)
     test_count += 1
-    if test_count > 10:
+    if test_count > 1000:
         break
 vecenv.close()

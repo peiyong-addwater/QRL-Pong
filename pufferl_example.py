@@ -56,8 +56,12 @@ if __name__ == '__main__':
         backend=pufferlib.vector.Multiprocessing, env_kwargs={'num_envs': 128})
     policy = Policy(vecenv.driver_env, agent_type=agent_type, agent_args=agent_args).cuda()
     args = pufferl.load_config('default')
+    
     args['train']['env'] = env_name
     args['wandb'] = True
+    args['wandb_project'] = 'Pong1PQuantumEntanglementStructure'
+    args['wandb_group'] = 'addwater0315-csiro'
+    
     pprint.pprint(args)
 
     trainer = pufferl.PuffeRL(args['train'], vecenv, policy)

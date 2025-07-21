@@ -838,7 +838,7 @@ class WandbLogger:
         wandb.init(
             id=load_id or wandb.util.generate_id(),
             project=args['wandb_project'],
-            group=args['wandb_group'],
+            entity=args['wandb_group'],
             allow_val_change=True,
             save_code=False,
             resume=resume,
@@ -1137,7 +1137,7 @@ def load_config(env_name):
 
     # Load defaults and config
     puffer_dir = os.path.dirname(os.path.realpath(__file__))
-    puffer_config_dir = os.path.join(puffer_dir, 'config/**/*.ini')
+    puffer_config_dir = os.path.join(puffer_dir, 'config')
     puffer_default_config = os.path.join(puffer_dir, 'config/default.ini')
     if env_name == 'default':
         p = configparser.ConfigParser()
