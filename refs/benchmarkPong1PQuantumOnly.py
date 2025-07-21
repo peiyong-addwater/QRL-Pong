@@ -26,59 +26,45 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [10, 9, 8, 7, 6, 5, 4, 3, 2] # minimum 2 layers for the quantum circuit
+n_layers_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 command_list = []
 
-
-ghz_finished = set()
-graph_state_finished = set()
+entangled_finished = set()
 separable_finished = set()
 
 # the (QLayers, seed) combo that has been finished 
 trained_models_dir = os.path.join("trained-models", "Pong1PModels")
 for trained_model_file in os.listdir(trained_models_dir):
-    # process ghz actor models
-    if "ghz" in trained_model_file:
+    # process entangledActor models
+    if "entangledActor" in trained_model_file:
         # find teh number of layers and seed with regex
         match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
         if match:
             n_layers = int(match.group(1))
             seed = int(match.group(2))
-            ghz_finished.add((n_layers, seed))
-            print(f"Found ghz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
-    # process graph_state models
-    if "graph_state" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            graph_state_finished.add((n_layers, seed))
-            print(f"Found graph_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
-    # process separable actor models
-    if "separable" in trained_model_file:
+            entangled_finished.add((n_layers, seed))
+            print(f"Found entangledActor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+    # process separableActor models
+    if "separableActor" in trained_model_file:
         match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
         if match:
             n_layers = int(match.group(1))
             seed = int(match.group(2))
             separable_finished.add((n_layers, seed))
-            print(f"Found separable actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+            print(f"Found separableActor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
 
 
 for n_layers in n_layers_list:
     for seed in seeds_list:
-        if (n_layers, seed) not in ghz_finished:
+        if (n_layers, seed) not in entangled_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'ghz' --seed {seed} --n_layers {n_layers}"
-            )
-        if (n_layers, seed) not in graph_state_finished:
-            command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
+                f"uv run pong_1P_quantum_only.py --agent_type 'entangledActor' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in separable_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
-            )
+                f"uv run pong_1P_quantum_only.py --agent_type 'separableActor' --seed {seed} --n_layers {n_layers}"
+        )
 
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
