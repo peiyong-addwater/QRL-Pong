@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [10, 9, 8, 7, 6, 5, 4, 3, 2] # minimum 2 layers for the quantum circuit
+n_layers_list = [2, 3, 4, 5, 6, 7, 8, 9, 10] # minimum 2 layers for the quantum circuit
 
 command_list = []
 
@@ -69,21 +69,21 @@ for n_layers in n_layers_list:
     for seed in seeds_list:
         if (n_layers, seed) not in ghz_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'ghz' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'ghz' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in graph_state_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in separable_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
             )
 
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    n_workers = len(command_list) if len(command_list) < 30 else 30
+    n_workers = len(command_list) if len(command_list) < 10 else 10
 
     print("======= commands to run:")
     for command in command_list:
