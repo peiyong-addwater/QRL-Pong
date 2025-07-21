@@ -69,15 +69,15 @@ for n_layers in n_layers_list:
     for seed in seeds_list:
         if (n_layers, seed) not in ghz_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'ghz' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'ghz' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in graph_state_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in separable_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 512 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
             )
 
 if __name__ == "__main__":
