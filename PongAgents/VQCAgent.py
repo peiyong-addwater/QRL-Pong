@@ -9,6 +9,12 @@ from typing import List, Tuple, Union, Callable
 
 ket0bra0 = np.outer(np.array([1., 0.]), np.array([1., 0.]))
 
+def controlledF(theta, wires):
+    """
+    The controlled F gate as in https://arxiv.org/abs/1606.09290
+    """
+    qml.QubitUnitary([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, np.cos(theta*2), np.sin(theta*2)],[0, 0, np.sin(theta*2), -np.cos(theta*2)]], wires=wires)
+
 def create_GHZ_state(qubit_list: List[int]):
     """
     Creates a GHZ state on the specified qubits.
@@ -27,6 +33,8 @@ def create_graph_state(qubit_list: List[int], edges: List[Tuple[int, int]]):
         node_1, node_2 = edge
         assert node_1 in qubit_list and node_2 in qubit_list, "Both nodes must be in the qubit list. Got: {}, {}".format(node_1, node_2)
         qml.CZ(wires=[node_1, node_2])
+
+
 
 def V_i_l(x_i, theta_0, theta_1, theta_2, qubit):
     """
