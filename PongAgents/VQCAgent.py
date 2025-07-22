@@ -15,6 +15,25 @@ def controlledF(theta, wires):
     """
     qml.QubitUnitary([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, np.cos(theta*2), np.sin(theta*2)],[0, 0, np.sin(theta*2), -np.cos(theta*2)]], wires=wires)
 
+def three_qubit_W(n=3, wires:List[int]=None):
+    """
+    Creates a three-qubit W state.
+    The initial state is assumed to be |100>
+    """
+    assert n == 3, "In this circuit W state is only defined for 3 qubits. Got: {}".format(n)
+    if wires is None:
+        wires = [0, 1, 2]
+    assert len(wires) == 3, "Wires must have length 3. Got: {}".format(len(wires))
+    
+    theta_12 = np.arccos(np.sqrt(1/n))/2
+    theta_23 = np.arccos(np.sqrt(1/(n-1)))/2
+
+    controlledF(theta_12, wires=[wires[0], wires[1]])
+    qml.CNOT(wires=[wires[1], wires[0]])
+    controlledF(theta_23, wires=[wires[1], wires[2]])
+    qml.CNOT(wires=[wires[2], wires[1]])
+
+
 def create_GHZ_state(qubit_list: List[int]):
     """
     Creates a GHZ state on the specified qubits.
@@ -277,6 +296,17 @@ if __name__ == "__main__":
     
     x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
-    result = circuit(x, params)
-    print("Circuit output shape:", result.shape)
-    print("Circuit output:\n", result)
+    # result = circuit(x, params)
+    # print("Circuit output shape:", result.shape)
+    # print("Circuit output:\n", result)
+
+    # W state example
+    wires = [0, 1, 2]
+    dev = qml.device("default.qubit", wires=wires)
+    @qml.qnode(dev, interface = 'torch')
+    def w_state_circuit():
+        qml.PauliX(wires=wires[0])
+        three_qubit_W(wires=wires)
+        return qml.probs()
+    
+    print("3-qubit W state probabilities:\n", w_state_circuit())
