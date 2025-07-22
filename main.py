@@ -34,6 +34,7 @@ command_list = []
 ghz_finished = set()
 graph_state_finished = set()
 separable_finished = set()
+w_state_finished = set()
 
 # the (QLayers, seed) combo that has been finished 
 trained_models_dir = os.path.join("trained-models", "Pong1PModels")
@@ -63,7 +64,14 @@ for trained_model_file in os.listdir(trained_models_dir):
             seed = int(match.group(2))
             separable_finished.add((n_layers, seed))
             print(f"Found separable actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
-
+    # process w_state models
+    if "w_state" in trained_model_file:
+        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+        if match:
+            n_layers = int(match.group(1))
+            seed = int(match.group(2))
+            w_state_finished.add((n_layers, seed))
+            print(f"Found w_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
 
 for n_layers in n_layers_list:
     for seed in seeds_list:
@@ -78,6 +86,10 @@ for n_layers in n_layers_list:
         if (n_layers, seed) not in separable_finished:
             command_list.append(
                 f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
+            )
+        if (n_layers, seed) not in w_state_finished:
+            command_list.append(
+                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'w_state' --seed {seed} --n_layers {n_layers}"
             )
 
 if __name__ == "__main__":

@@ -33,7 +33,23 @@ def three_qubit_W(n=3, wires:List[int]=None):
     controlledF(theta_23, wires=[wires[1], wires[2]])
     qml.CNOT(wires=[wires[2], wires[1]])
 
+def create_W_state(qubit_list: List[int]):
+    """
+    Creates a W state on the specified qubits.
+    The initial state is assumed to be |1000...0>
+    """
+    assert len(qubit_list) >= 3, "W state requires at least 3 qubits. Got: {}".format(len(qubit_list))
 
+
+    if len(qubit_list) == 3:
+        three_qubit_W(wires=qubit_list)
+    else:
+        theta_12 = np.arccos(np.sqrt(1/len(qubit_list)))/2
+        controlledF(theta_12, wires=[qubit_list[0], qubit_list[1]])
+        create_W_state(qubit_list[1:])
+        for i in range(1, len(qubit_list)):
+            qml.CNOT(wires=[qubit_list[i], qubit_list[0]])
+        
 def create_GHZ_state(qubit_list: List[int]):
     """
     Creates a GHZ state on the specified qubits.
@@ -52,8 +68,6 @@ def create_graph_state(qubit_list: List[int], edges: List[Tuple[int, int]]):
         node_1, node_2 = edge
         assert node_1 in qubit_list and node_2 in qubit_list, "Both nodes must be in the qubit list. Got: {}, {}".format(node_1, node_2)
         qml.CZ(wires=[node_1, node_2])
-
-
 
 def V_i_l(x_i, theta_0, theta_1, theta_2, qubit):
     """
@@ -231,6 +245,81 @@ def make_separable_circ(n_layers: int, post_select = True)->Callable:
     
     return qfunc
 
+def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
+    """
+    Creates a parameterised circuit starting with a W state.
+    """
+
+    assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
+
+    device = qml.device("default.qubit", wires = 8)
+    qubit_list = [0, 1, 2, 3, 4, 5, 6, 7] # qubit #1 is the control qubit for W state since it is the right paddle qubit
+    # measurement observables
+    if post_select:
+        # project all the qubits other than the second qubit onto |0>
+        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
+    else:
+        meas_x = qml.PauliX(1)
+        meas_y = qml.PauliY(1)
+        meas_z = qml.PauliZ(1)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 3)
+        """
+        # Create W state
+        qml.PauliX(wires=qubit_list[0])  # Initialize the first qubit to |1>
+        create_W_state(qubit_list)
+
+        for l in range(n_layers - 1):
+            for i in range(8):
+                V_i_l(x[...,i], params[l][i][0], params[l][i][1], params[l][i][2], i)
+        
+        U3Layer(params[l-1], qubit_list)
+
+        qml.adjoint(create_W_state)(qubit_list)
+        qml.PauliX(wires=qubit_list[0])  # Reset the first qubit to |0>
+
+
+        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+    
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 3), "Parameters must have shape (n_layers, 8, 3). Got: {}".format(params.shape)
+        
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
+
+class WStateAgent(nn.Module):
+    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
+        super().__init__()
+        self.single_action_dim = action_space
+        self.observation_dim = observation_space
+        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+
+        self.qfunc = make_entangled_circ_w_state(n_layers, post_select=post_select)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 3), requires_grad=True)
+            )
+    
+    def forward(self, x):
+        x = x * torch.pi
+        out = self.qfunc(x, self.params).to(x.dtype)
+        return out
+
 class GHZAgent(nn.Module):
     def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
         super().__init__()
@@ -292,21 +381,21 @@ if __name__ == "__main__":
     # Example usage
     n_layers = 6
     edge_list = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
-    circuit = make_separable_circ(n_layers, post_select=False)
+    circuit = make_entangled_circ_w_state(n_layers, post_select=False)
     
     x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
-    # result = circuit(x, params)
-    # print("Circuit output shape:", result.shape)
-    # print("Circuit output:\n", result)
+    result = circuit(x, params)
+    print("Circuit output shape:", result.shape)
+    print("Circuit output:\n", result)
 
     # W state example
-    wires = [0, 1, 2]
+    wires = [0, 1, 2, 3]
     dev = qml.device("default.qubit", wires=wires)
     @qml.qnode(dev, interface = 'torch')
     def w_state_circuit():
         qml.PauliX(wires=wires[0])
-        three_qubit_W(wires=wires)
+        create_W_state(wires)
         return qml.probs()
-    
-    print("3-qubit W state probabilities:\n", w_state_circuit())
+
+    print("W state probabilities:\n", w_state_circuit())
