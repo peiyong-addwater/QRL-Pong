@@ -64,6 +64,29 @@ class PongHybridAgent(nn.Module):
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
+class PongClassicalAgent(nn.Module):
+    """
+    A classical agent with a classical critic.
+    """
+    def __init__(self, env):
+        super().__init__()
+        self.single_action_dim = env.single_action_space.n
+        self.observation_dim = env.single_observation_space.shape[0]
+        self.actor = nn.Sequential(
+            nn.Linear(self.single_action_dim, self.single_action_dim),
+            nn.ReLU(),
+        )
+        self.critic = PongClassicalCritic(input_dim=self.observation_dim)
+
+    def get_value(self, x):
+        return self.critic(x)
+
+    def get_action_and_value(self, x, action=None):
+        logits = self.actor(x)
+        probs = Categorical(logits=logits)
+        if action is None:
+            action = probs.sample()
+        return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
 if __name__ == "__main__":
     from pufferlib import vector
