@@ -30,7 +30,7 @@ command_list = []
 
 for seed in seeds_list:
     command_list.append(
-        f"uv run Pong1PClassicalBaseline.py --num_envs 32 --num_steps 128 --seed {seed} --exp_name 'Pong1PClassicalBaseline' --wandb_project_name 'Pong1PClassicalBaseline' --model_save_path 'trained-models/Pong1PClassicalBaseline'"
+        f"uv run Pong1PClassicalBaseline.py --num_envs 32 --num_steps 128 --seed {seed}"
     )
 
 if __name__ == "__main__":

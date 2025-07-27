@@ -96,10 +96,10 @@ if __name__ == "__main__":
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):
             os.makedirs("trained-models")
-            if not os.path.exists(os.path.join("trained-models", "Pong1PModels")):
-                os.makedirs(os.path.join("trained-models", "Pong1PModels"))
-        args.model_save_path = f"trained-models/Pong1PModels/{run_name}.pt"
-    
+            if not os.path.exists(os.path.join("trained-models", "Pong1PClassicalBaseline")):
+                os.makedirs(os.path.join("trained-models", "Pong1PClassicalBaseline"))
+        args.model_save_path = f"trained-models/Pong1PClassicalBaseline/{run_name}.pt"
+
     print(args)
 
     if args.track:
