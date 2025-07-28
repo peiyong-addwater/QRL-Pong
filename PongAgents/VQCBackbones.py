@@ -302,12 +302,12 @@ def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
     
     return qfunc
 
-class WStateAgent(nn.Module):
-    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
+class WStateBackbone(nn.Module):
+    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = action_space
+        self.output_dim = output_dim
         self.observation_dim = observation_space
-        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
         self.qfunc = make_entangled_circ_w_state(n_layers, post_select=post_select)
@@ -320,12 +320,12 @@ class WStateAgent(nn.Module):
         out = self.qfunc(x, self.params).to(x.dtype)
         return out
 
-class GHZAgent(nn.Module):
-    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
+class GHZBackbone(nn.Module):
+    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = action_space
+        self.output_dim = output_dim
         self.observation_dim = observation_space
-        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
         self.qfunc = make_entangled_circ_ghz(n_layers, post_select=post_select)
@@ -338,13 +338,14 @@ class GHZAgent(nn.Module):
         out = self.qfunc(x, self.params).to(x.dtype)
         return out
 
-class GraphStateAgent(nn.Module):
-    def __init__(self, n_layers, edge_list, post_select, action_space, observation_space):
+class GraphStateBackbone(nn.Module):
+    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = action_space
+        self.output_dim = output_dim
         self.observation_dim = observation_space
-        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+        assert edge_list is not None, "Edge list must be provided for GraphStateBackbone"
 
         self.qfunc = make_entangled_circ_graph_state(n_layers, edge_list=edge_list, post_select=post_select)
         self.params = nn.Parameter(
@@ -356,12 +357,12 @@ class GraphStateAgent(nn.Module):
         out = self.qfunc(x, self.params).to(x.dtype)
         return out
 
-class SeparableAgent(nn.Module):
-    def __init__(self, n_layers, post_select, action_space, observation_space, edge_list=None):
+class SeparableBackbone(nn.Module):
+    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
         super().__init__()
-        self.single_action_dim = action_space
+        self.output_dim = output_dim
         self.observation_dim = observation_space
-        assert self.single_action_dim == 3 # only 3 actions: up, down, no action
+        assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
         self.qfunc = make_separable_circ(n_layers, post_select=post_select)
