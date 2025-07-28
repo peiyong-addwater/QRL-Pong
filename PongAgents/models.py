@@ -89,14 +89,13 @@ class PongClassicalAgent(nn.Module):
         self.single_action_dim = env.single_action_space.n
         self.observation_dim = env.single_observation_space.shape[0]
         self.backbone = nn.Sequential(
-            nn.Linear(self.observation_dim, 128),
+            nn.Linear(self.observation_dim, 2**8),
             nn.ReLU(),
-            nn.Linear(128, 3)  # Output dimension for the critic
+            nn.Linear(2**8, 3)  # Output dimension for the critic
         )
-        self.actor = nn.Sequential(
-            nn.Linear(3, 128),
-            nn.ReLU(),
-            nn.Linear(128, self.single_action_dim)
+        self.actor = PongClassicalPolicy(
+            input_dim=3,
+            output_dim=self.single_action_dim
         )
         self.critic = PongClassicalCritic(input_dim=3)
 
