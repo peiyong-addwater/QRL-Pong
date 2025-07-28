@@ -95,7 +95,9 @@ for n_layers in n_layers_list:
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    n_workers = len(command_list) if len(command_list) < 10 else 10
+    NUM_CPUS = 5
+
+    n_workers = len(command_list) if len(command_list) < NUM_CPUS else NUM_CPUS
 
     print("======= commands to run:")
     for command in command_list:
