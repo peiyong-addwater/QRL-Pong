@@ -91,7 +91,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1PClassicalBaseline"
 
-    run_name = f"Pong1PClassicalBaseline__seed_{args.seed}_{int(time.time())}"
+    run_name = f"Pong1PCB2L__seed_{args.seed}_{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):
