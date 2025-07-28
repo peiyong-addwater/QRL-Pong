@@ -5,20 +5,18 @@ import random
 import time
 from dataclasses import dataclass
 
-import gymnasium as gym
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import tyro
-from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
 from PongAgents import PongHybridAgent
 
 @dataclass
 class Args:
-    exp_name: str = "Pong1PQuantum" #os.path.basename(__file__)[: -len(".py")]
+    exp_name: str = "Pong1PQB" #os.path.basename(__file__)[: -len(".py")]
     """the base name of the experiment"""
     seed: int = 1
     """random seed"""
@@ -97,7 +95,7 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong1PQuantumOnly"
+    args.wandb_project_name = f"Pong1PQBackbone"
 
     run_name = f"Pong1P_{args.agent_type}_QLayers_{args.n_layers}_PostSel_{args.post_select}___seed_{args.seed}_{int(time.time())}"
 
