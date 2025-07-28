@@ -88,22 +88,29 @@ class PongClassicalAgent(nn.Module):
         super().__init__()
         self.single_action_dim = env.single_action_space.n
         self.observation_dim = env.single_observation_space.shape[0]
-        self.actor = nn.Sequential(
+        self.backbone = nn.Sequential(
             nn.Linear(self.observation_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 3)  # Output dimension for the critic
+        )
+        self.actor = nn.Sequential(
+            nn.Linear(3, 128),
             nn.ReLU(),
             nn.Linear(128, self.single_action_dim)
         )
-        self.critic = PongClassicalCritic(input_dim=self.observation_dim)
+        self.critic = PongClassicalCritic(input_dim=3)
 
     def get_value(self, x):
-        return self.critic(x)
+        hidden = self.backbone(x)
+        return self.critic(hidden)
 
     def get_action_and_value(self, x, action=None):
-        logits = self.actor(x)
+        hidden = self.backbone(x)
+        logits = self.actor(hidden)
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(x)
+        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
 
 if __name__ == "__main__":
     from pufferlib import vector
