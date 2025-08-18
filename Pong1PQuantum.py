@@ -34,8 +34,6 @@ class Args:
     # Agent specific arguments
     agent_type: str = "ghz"
     """the type of the agent, choose from ["ghz", "graph_state", "separable", "w_state"] """
-    post_select: bool = False
-    """whether to use post-selection in the quantum agent"""
     n_layers: int = 2
     """the number of layers in the quantum actor network"""
     model_save_path: str = None
@@ -146,7 +144,6 @@ if __name__ == "__main__":
         env=envs,
         agent_args={
             "n_layers": args.n_layers,
-            "post_select": args.post_select,
             "edge_list": EDGE_LIST if args.agent_type == "graph_state" else None
         }
     ).to(device)

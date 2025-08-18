@@ -24,9 +24,9 @@ def run_experiment(command: str):
     # Convert bytes to string and strip leading/trailing whitespaces
     return output.decode("utf-8").strip()
 
-seeds_list = [0, 1, 2, 3, 4]
+seeds_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-n_layers_list = [2, 3, 4, 5, 6, 7, 8, 9, 10] # minimum 2 layers for the quantum circuit
+n_layers_list = [2, 5, 10, 20, 40, 100] # minimum 2 layers for the quantum circuit
 
 command_list = []
 
