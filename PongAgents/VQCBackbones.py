@@ -86,7 +86,7 @@ def U3Layer(thetas, qubit_list: List[int]):
         theta_0, theta_1, theta_2 = thetas[i]
         qml.U3(theta_0, theta_1, theta_2, wires=qubit)
 
-def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
+def make_entangled_circ_ghz(n_layers: int)->Callable:
     """
     Creates a parameterised circuit starting with a GHZ state.
     """
@@ -96,15 +96,6 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
     device = qml.device("default.qubit", wires = 8)
     qubit_list = [1, 0, 2, 3, 4, 5, 6, 7] # qubit #1 is the control qubit for GHZ state since it is the right paddle qubit
     # measurement observables
-    if post_select:
-        # project all the qubits other than the second qubit onto |0>
-        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-    else:
-        meas_x = qml.PauliX(1)
-        meas_y = qml.PauliY(1)
-        meas_z = qml.PauliZ(1)
 
     def circuit(x, params):
         """
@@ -121,7 +112,7 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
 
         qml.adjoint(create_GHZ_state)(qubit_list)
 
-        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+        return [qml.expval(qml.PauliZ(0)), qml.expval(qml.PauliZ(1)), qml.expval(qml.PauliZ(2))]
 
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -140,7 +131,7 @@ def make_entangled_circ_ghz(n_layers: int, post_select = True)->Callable:
     
     return qfunc
 
-def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int]], post_select = True)->Callable:
+def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int]])->Callable:
     """
     Creates a parameterised circuit starting with a graph state.
     """
@@ -152,16 +143,6 @@ def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int
         assert edge[0] in qubit_list and edge[1] in qubit_list, "Both nodes must be in the qubit list. Got: {}, {}".format(edge[0], edge[1])
     
     device = qml.device("default.qubit", wires = 8)
-    # measurement observables
-    if post_select:
-        # project all the qubits other than the second qubit onto |0>
-        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-    else:
-        meas_x = qml.PauliX(1)
-        meas_y = qml.PauliY(1)
-        meas_z = qml.PauliZ(1)
     
     def circuit(x, params):
         """
@@ -178,7 +159,7 @@ def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int
 
         qml.adjoint(create_graph_state)(qubit_list, edge_list)
         
-        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+        return [qml.expval(qml.PauliZ(0)), qml.expval(qml.PauliZ(1)), qml.expval(qml.PauliZ(2))]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -196,7 +177,7 @@ def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int
     
     return qfunc
 
-def make_separable_circ(n_layers: int, post_select = True)->Callable:
+def make_separable_circ(n_layers: int)->Callable:
     """
     Creates a parameterised circuit with no entanglement.
     """
@@ -204,17 +185,6 @@ def make_separable_circ(n_layers: int, post_select = True)->Callable:
     assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
 
     device = qml.device("default.qubit", wires = 8)
-
-    # measurement observables
-    if post_select:
-        # project all the qubits other than the second qubit onto |0>
-        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-    else:
-        meas_x = qml.PauliX(1)
-        meas_y = qml.PauliY(1)
-        meas_z = qml.PauliZ(1)
     
     def circuit(x, params):
         """
@@ -227,8 +197,8 @@ def make_separable_circ(n_layers: int, post_select = True)->Callable:
 
         U3Layer(params[l-1], [0, 1, 2, 3, 4, 5, 6, 7])
         
-        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
-
+        return [qml.expval(qml.PauliZ(0)), qml.expval(qml.PauliZ(1)), qml.expval(qml.PauliZ(2))]
+    
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
     
@@ -245,7 +215,7 @@ def make_separable_circ(n_layers: int, post_select = True)->Callable:
     
     return qfunc
 
-def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
+def make_entangled_circ_w_state(n_layers: int)->Callable:
     """
     Creates a parameterised circuit starting with a W state.
     """
@@ -254,16 +224,6 @@ def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
 
     device = qml.device("default.qubit", wires = 8)
     qubit_list = [0, 1, 2, 3, 4, 5, 6, 7] # qubit #1 is the control qubit for W state since it is the right paddle qubit
-    # measurement observables
-    if post_select:
-        # project all the qubits other than the second qubit onto |0>
-        meas_x = qml.Hermitian(ket0bra0, wires=0)@qml.PauliX(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_y = qml.Hermitian(ket0bra0, wires=0)@qml.PauliY(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-        meas_z = qml.Hermitian(ket0bra0, wires=0)@qml.PauliZ(1)@qml.Hermitian(ket0bra0, wires=2)@qml.Hermitian(ket0bra0, wires=3)@qml.Hermitian(ket0bra0, wires=4)@qml.Hermitian(ket0bra0, wires=5)@qml.Hermitian(ket0bra0, wires=6)@qml.Hermitian(ket0bra0, wires=7)
-    else:
-        meas_x = qml.PauliX(1)
-        meas_y = qml.PauliY(1)
-        meas_z = qml.PauliZ(1)
     
     def circuit(x, params):
         """
@@ -284,7 +244,7 @@ def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
         qml.PauliX(wires=qubit_list[0])  # Reset the first qubit to |0>
 
 
-        return [qml.expval(meas_x), qml.expval(meas_y), qml.expval(meas_z)]
+        return [qml.expval(qml.PauliZ(0)), qml.expval(qml.PauliZ(1)), qml.expval(qml.PauliZ(2))]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -303,14 +263,14 @@ def make_entangled_circ_w_state(n_layers: int, post_select = False)->Callable:
     return qfunc
 
 class WStateBackbone(nn.Module):
-    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
+    def __init__(self, n_layers, output_dim, observation_space, edge_list=None):
         super().__init__()
         self.output_dim = output_dim
         self.observation_dim = observation_space
         assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
-        self.qfunc = make_entangled_circ_w_state(n_layers, post_select=post_select)
+        self.qfunc = make_entangled_circ_w_state(n_layers)
         self.params = nn.Parameter(
             torch.rand((n_layers, 8, 3), requires_grad=True)
             )
@@ -321,14 +281,14 @@ class WStateBackbone(nn.Module):
         return out
 
 class GHZBackbone(nn.Module):
-    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
+    def __init__(self, n_layers, output_dim, observation_space, edge_list=None):
         super().__init__()
         self.output_dim = output_dim
         self.observation_dim = observation_space
         assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
-        self.qfunc = make_entangled_circ_ghz(n_layers, post_select=post_select)
+        self.qfunc = make_entangled_circ_ghz(n_layers)
         self.params = nn.Parameter(
             torch.rand((n_layers, 8, 3), requires_grad=True)
             )
@@ -339,7 +299,7 @@ class GHZBackbone(nn.Module):
         return out
 
 class GraphStateBackbone(nn.Module):
-    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
+    def __init__(self, n_layers, output_dim, observation_space, edge_list=None):
         super().__init__()
         self.output_dim = output_dim
         self.observation_dim = observation_space
@@ -347,7 +307,7 @@ class GraphStateBackbone(nn.Module):
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
         assert edge_list is not None, "Edge list must be provided for GraphStateBackbone"
 
-        self.qfunc = make_entangled_circ_graph_state(n_layers, edge_list=edge_list, post_select=post_select)
+        self.qfunc = make_entangled_circ_graph_state(n_layers, edge_list=edge_list)
         self.params = nn.Parameter(
             torch.rand((n_layers, 8, 3), requires_grad=True)
             )
@@ -358,14 +318,14 @@ class GraphStateBackbone(nn.Module):
         return out
 
 class SeparableBackbone(nn.Module):
-    def __init__(self, n_layers, post_select, output_dim, observation_space, edge_list=None):
+    def __init__(self, n_layers, output_dim, observation_space, edge_list=None):
         super().__init__()
         self.output_dim = output_dim
         self.observation_dim = observation_space
         assert self.output_dim == 3 # only 3 output dim
         assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
 
-        self.qfunc = make_separable_circ(n_layers, post_select=post_select)
+        self.qfunc = make_separable_circ(n_layers)
         self.params = nn.Parameter(
             torch.rand((n_layers, 8, 3), requires_grad=True)
             )
@@ -382,7 +342,7 @@ if __name__ == "__main__":
     # Example usage
     n_layers = 6
     edge_list = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
-    circuit = make_entangled_circ_w_state(n_layers, post_select=False)
+    circuit = make_entangled_circ_w_state(n_layers)
     
     x = torch.tensor(np.random.rand(12, 8))
     params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
