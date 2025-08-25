@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-n_layers_list = [2, 5, 10, 20, 40, 100] # minimum 2 layers for the quantum circuit
+n_layers_list = [2, 3, 4, 5, 10, 20] # minimum 2 layers for the quantum circuit
 
 command_list = []
 
@@ -95,7 +95,7 @@ for n_layers in n_layers_list:
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    NUM_CPUS = 20
+    NUM_CPUS = 25
 
     n_workers = len(command_list) if len(command_list) < NUM_CPUS else NUM_CPUS
 

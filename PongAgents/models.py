@@ -111,14 +111,17 @@ class PongHybridAgent(nn.Module):
             output_dim=self.single_action_dim,
         )
     
-    def get_value(self, x):
+    def get_representation(self, x):
         hidden = self.backbone(x)
         hidden = self.affine(hidden)
+        return hidden
+    
+    def get_value(self, x):
+        hidden = self.get_representation(x)
         return self.critic(hidden)
 
     def get_action_and_value(self, x, action=None):
-        hidden = self.backbone(x)
-        hidden = self.affine(hidden)
+        hidden = self.get_representation(x)
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)
         if action is None:
