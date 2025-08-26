@@ -38,6 +38,8 @@ w_state_finished = set()
 
 # the (QLayers, seed) combo that has been finished 
 trained_models_dir = os.path.join("trained-models", "Pong1PModels")
+if not os.path.exists(trained_models_dir):
+    os.makedirs(trained_models_dir)
 for trained_model_file in os.listdir(trained_models_dir):
     # process ghz actor models
     if "ghz" in trained_model_file:
