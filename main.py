@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [2, 3] # minimum 2 layers for the quantum circuit
+n_layers_list = [2, 3, 4] # minimum 2 layers for the quantum circuit
 
 command_list = []
 
