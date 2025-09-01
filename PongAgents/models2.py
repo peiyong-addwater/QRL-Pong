@@ -7,7 +7,7 @@ import numpy as np
 
 from typing import List, Tuple, Union, Callable
 
-from VQCBackbones2 import (
+from .VQCBackbones2 import (
     GHZBackbone,
     GraphStateBackbone,
     SeparableBackbone,
