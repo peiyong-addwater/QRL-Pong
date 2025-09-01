@@ -24,9 +24,9 @@ def run_experiment(command: str):
     # Convert bytes to string and strip leading/trailing whitespaces
     return output.decode("utf-8").strip()
 
-seeds_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [2, 3, 4, 5, 10, 20] # minimum 2 layers for the quantum circuit
+n_layers_list = [2, 3] # minimum 2 layers for the quantum circuit
 
 command_list = []
 
@@ -40,40 +40,40 @@ w_state_finished = set()
 trained_models_dir = os.path.join("trained-models", "Pong1PModels")
 if not os.path.exists(trained_models_dir):
     os.makedirs(trained_models_dir)
-for trained_model_file in os.listdir(trained_models_dir):
+#for trained_model_file in os.listdir(trained_models_dir):
     # process ghz actor models
-    if "ghz" in trained_model_file:
+#    if "ghz" in trained_model_file:
         # find teh number of layers and seed with regex
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            ghz_finished.add((n_layers, seed))
-            print(f"Found ghz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            ghz_finished.add((n_layers, seed))
+#            print(f"Found ghz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process graph_state models
-    if "graph_state" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            graph_state_finished.add((n_layers, seed))
-            print(f"Found graph_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#    if "graph_state" in trained_model_file:
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            graph_state_finished.add((n_layers, seed))
+#            print(f"Found graph_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process separable actor models
-    if "separable" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            separable_finished.add((n_layers, seed))
-            print(f"Found separable actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#    if "separable" in trained_model_file:
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            separable_finished.add((n_layers, seed))
+#            print(f"Found separable actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process w_state models
-    if "w_state" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            w_state_finished.add((n_layers, seed))
-            print(f"Found w_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#    if "w_state" in trained_model_file:
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            w_state_finished.add((n_layers, seed))
+#            print(f"Found w_state model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
 
 for n_layers in n_layers_list:
     for seed in seeds_list:
@@ -85,10 +85,10 @@ for n_layers in n_layers_list:
             command_list.append(
                 f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'graph_state' --seed {seed} --n_layers {n_layers}"
             )
-        if (n_layers, seed) not in separable_finished:
-            command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
-            )
+#        if (n_layers, seed) not in separable_finished:
+#            command_list.append(
+#                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
+#            )
         if (n_layers, seed) not in w_state_finished:
             command_list.append(
                 f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'w_state' --seed {seed} --n_layers {n_layers}"
@@ -97,7 +97,7 @@ for n_layers in n_layers_list:
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    NUM_CPUS = 5
+    NUM_CPUS = 10
 
     n_workers = len(command_list) if len(command_list) < NUM_CPUS else NUM_CPUS
 
