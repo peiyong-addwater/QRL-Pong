@@ -75,8 +75,8 @@ def V_i_l(x_i, theta_0, theta_1, theta_2, qubit):
     """
     qml.U3(theta_0, theta_1, theta_2, wires=qubit)
     qml.RX(x_i, wires=qubit)
-    qml.RY(x_i, wires=qubit)
-    qml.RZ(x_i, wires=qubit)
+    # qml.RY(x_i, wires=qubit)
+    # qml.RZ(x_i, wires=qubit)
 
 def U3Layer(thetas, qubit_list: List[int]):
     """

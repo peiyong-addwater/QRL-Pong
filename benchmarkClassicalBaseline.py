@@ -24,7 +24,7 @@ def run_experiment(command: str):
     # Convert bytes to string and strip leading/trailing whitespaces
     return output.decode("utf-8").strip()
 
-seeds_list = [0, 1, 2, 3, 4]
+seeds_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 command_list = []
 
@@ -35,6 +35,9 @@ for seed in seeds_list:
 
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
+    import torch
+
+    
 
     n_workers = len(command_list) if len(command_list) < 10 else 10
 

@@ -112,15 +112,18 @@ class PongHybridAgent(nn.Module):
         )
     
     def get_representation(self, x):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.backbone(x)
         hidden = self.affine(hidden)
         return hidden
     
     def get_value(self, x):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.get_representation(x)
         return self.critic(hidden)
 
     def get_action_and_value(self, x, action=None):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.get_representation(x)
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)
@@ -147,12 +150,16 @@ class PongClassicalAgent(nn.Module):
         )
         self.critic = PongClassicalCritic(input_dim=3)
 
-    def get_value(self, x):
+    def get_representations(self, x):
         hidden = self.backbone(x)
+        return hidden
+
+    def get_value(self, x):
+        hidden = self.get_representations(x)
         return self.critic(hidden)
 
     def get_action_and_value(self, x, action=None):
-        hidden = self.backbone(x)
+        hidden = self.get_representations(x)
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)
         if action is None:
