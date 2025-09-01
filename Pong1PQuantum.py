@@ -133,7 +133,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
     if torch.cuda.is_available() and args.cuda:
         if torch.cuda.device_count() > 1:
-            torch.cuda.set_device(2)
+            torch.cuda.set_device(1)
 
     print(f"Using device: {device}")
 
