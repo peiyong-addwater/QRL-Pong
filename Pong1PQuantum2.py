@@ -24,7 +24,7 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    cuda_device: int = 0
+    cuda_device: int = 3
     """CUDA device index to use (e.g., 0 for cuda:0). Ignored if --cuda=False or CUDA not available."""
     track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
