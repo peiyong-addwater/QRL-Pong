@@ -26,6 +26,8 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
+    cuda_device: int = 0
+    """CUDA device index to use (e.g., 0 for cuda:0). Ignored if --cuda=False or CUDA not available."""
     track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_entity: str = "addwater0315-csiro"
@@ -126,7 +128,15 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
-    device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    if torch.cuda.is_available() and args.cuda:
+        device_count = torch.cuda.device_count()
+        if args.cuda_device < 0 or args.cuda_device >= device_count:
+            print(f"Requested cuda_device {args.cuda_device} is out of range (0..{device_count-1}). Falling back to 0.")
+            args.cuda_device = 0
+        torch.cuda.set_device(args.cuda_device)
+        device = torch.device(f"cuda:{args.cuda_device}")
+    else:
+        device = torch.device("cpu")
 
     print(f"Using device: {device}")
 
