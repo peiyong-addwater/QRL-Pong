@@ -159,6 +159,13 @@ if __name__ == "__main__":
     dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
     values = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
+    # Backbone representation stats accumulators (episode-wise per env)
+    # Track sum, sum of squares, and count for each env and each representation element
+    rep_feat_dim = 3  # PongClassicalAgent backbone outputs 3-dim representations
+    rep_sum = torch.zeros((args.num_envs, rep_feat_dim), dtype=torch.float32, device=device)
+    rep_sumsq = torch.zeros_like(rep_sum)
+    rep_count = torch.zeros((args.num_envs,), dtype=torch.long, device=device)
+
     # Start the game
     global_step = 0
     start_time = time.time()
@@ -179,6 +186,12 @@ if __name__ == "__main__":
 
             # ALGO LOGIC: action logic
             with torch.no_grad():
+                # Track backbone representations (episode-wise)
+                reps = agent.get_representations(next_obs)
+                rep_sum += reps
+                rep_sumsq += reps * reps
+                rep_count += 1
+
                 action, logprob, _, value = agent.get_action_and_value(next_obs)
                 values[step] = value.flatten()
             actions[step] = action
@@ -189,6 +202,31 @@ if __name__ == "__main__":
             next_done = np.logical_or(terminations, truncations)
             rewards[step] = torch.tensor(reward).to(device).view(-1)
             next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(next_done).to(device)
+
+            # When an episode ends for any env, compute and log rep stats, then reset accumulators
+            done_mask = next_done > 0.5
+            if done_mask.any():
+                done_indices = torch.nonzero(done_mask, as_tuple=False).flatten().tolist()
+                for env_idx in done_indices:
+                    cnt = int(rep_count[env_idx].item())
+                    if cnt > 0:
+                        mean = rep_sum[env_idx] / float(cnt)
+                        var = rep_sumsq[env_idx] / float(cnt) - mean * mean
+                        for feat_idx in range(rep_feat_dim):
+                            writer.add_scalar(
+                                f"3-Backbone-Rep-Stats/env_{env_idx}/feat_{feat_idx}_mean",
+                                mean[feat_idx].item(),
+                                global_step,
+                            )
+                            writer.add_scalar(
+                                f"3-Backbone-Rep-Stats/env_{env_idx}/feat_{feat_idx}_var",
+                                var[feat_idx].item(),
+                                global_step,
+                            )
+                    # Reset accumulators for the finished env
+                    rep_sum[env_idx].zero_()
+                    rep_sumsq[env_idx].zero_()
+                    rep_count[env_idx] = 0
 
             for info in infos:
                 if len(info.keys()) > 0:
