@@ -167,6 +167,9 @@ if __name__ == "__main__":
     rewards = torch.zeros((args.num_steps, args.num_envs)).to(device)
     dones = torch.zeros((args.num_steps, args.num_envs)).to(device)
     values = torch.zeros((args.num_steps, args.num_envs)).to(device)
+    
+    # Per-step global backbone stats (across environments). No accumulators needed.
+    rep_feat_dim = 3  # Hybrid backbone output dimension
 
     # Start the game
     global_step = 0
@@ -188,6 +191,21 @@ if __name__ == "__main__":
 
             # ALGO LOGIC: action logic
             with torch.no_grad():
+                # Per-step global stats across envs for backbone representations
+                reps = agent.get_representation(next_obs)  # [num_envs, rep_feat_dim]
+                step_mean = reps.mean(dim=0)
+                step_var = (reps * reps).mean(dim=0) - step_mean * step_mean
+                for feat_idx in range(rep_feat_dim):
+                    writer.add_scalar(
+                        f"3-Backbone-Rep-Stats/per_step/feat_{feat_idx}_mean",
+                        step_mean[feat_idx].item(),
+                        global_step,
+                    )
+                    writer.add_scalar(
+                        f"3-Backbone-Rep-Stats/per_step/feat_{feat_idx}_var",
+                        step_var[feat_idx].item(),
+                        global_step,
+                    )
                 action, logprob, _, value = agent.get_action_and_value(next_obs)
                 values[step] = value.flatten()
             actions[step] = action
