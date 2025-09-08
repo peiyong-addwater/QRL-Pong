@@ -160,7 +160,7 @@ if __name__ == "__main__":
     values = torch.zeros((args.num_steps, args.num_envs)).to(device)
 
     # Per-step global backbone stats (across environments). No accumulators needed.
-    rep_feat_dim = 3  # PongClassicalAgent backbone outputs 3-dim representations
+    rep_feat_dim = 8  # PongClassicalAgent backbone outputs 8-dim representations
 
     # Start the game
     global_step = 0

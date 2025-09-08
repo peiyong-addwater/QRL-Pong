@@ -169,7 +169,7 @@ if __name__ == "__main__":
     values = torch.zeros((args.num_steps, args.num_envs)).to(device)
     
     # Per-step global backbone stats (across environments). No accumulators needed.
-    rep_feat_dim = 3  # Hybrid backbone output dimension
+    rep_feat_dim = 8  # Hybrid backbone output dimension
 
     # Start the game
     global_step = 0
