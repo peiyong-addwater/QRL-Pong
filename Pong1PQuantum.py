@@ -34,7 +34,7 @@ class Args:
     """the number of workers to use for the vectorized environment"""
 
     # Agent specific arguments
-    agent_type: str = "ghz"
+    agent_type: str = "separable"
     """the type of the agent, choose from ["entangled", "separable"] """
     n_layers: int = 2
     """the number of layers in the quantum actor network"""
@@ -83,8 +83,6 @@ class Args:
     num_iterations: int = 0
     """the number of iterations (computed in runtime)"""
 
-# the edge list for the graph state agent
-EDGE_LIST = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
 
 if __name__ == "__main__":
     from pufferlib import vector
@@ -97,7 +95,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1PQBackbone"
 
-    run_name = f"Pong1PT1_{args.agent_type}_QLayers_{args.n_layers}___seed_{args.seed}_{int(time.time())}"
+    run_name = f"Pong1PQFM_{args.agent_type}_QLayers_{args.n_layers}___seed_{args.seed}_{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):
@@ -153,8 +151,7 @@ if __name__ == "__main__":
         agent_type=args.agent_type,
         env=envs,
         agent_args={
-            "n_layers": args.n_layers,
-            "edge_list": EDGE_LIST if args.agent_type == "graph_state" else None
+            "n_layers": args.n_layers
         }
     ).to(device)
 
