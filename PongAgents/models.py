@@ -142,13 +142,13 @@ class PongClassicalAgent(nn.Module):
         self.backbone = nn.Sequential(
             nn.Linear(self.observation_dim, 2**8),
             nn.ReLU(),
-            nn.Linear(2**8, 3)  # Output dimension for the critic
+            nn.Linear(2**8, 8)  # Output dimension for the critic
         )
         self.actor = PongClassicalPolicy(
-            input_dim=3,
+            input_dim=8,
             output_dim=self.single_action_dim
         )
-        self.critic = PongClassicalCritic(input_dim=3)
+        self.critic = PongClassicalCritic(input_dim=8)
 
     def get_representations(self, x):
         hidden = self.backbone(x)
