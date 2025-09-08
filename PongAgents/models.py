@@ -14,13 +14,6 @@ from .VQCBackbones import (
     WStateBackbone
 )
 
-BACKBONES = {
-    "ghz": GHZBackbone,
-    "graph_state": GraphStateBackbone,
-    "separable": SeparableBackbone,
-    "w_state": WStateBackbone
-}
-
 # EDGE_LIST = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
 
 class ElementwiseScaleShift(nn.Module):

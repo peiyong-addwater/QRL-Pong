@@ -9,6 +9,78 @@ from typing import List, Tuple, Union, Callable
 
 ket0bra0 = np.outer(np.array([1., 0.]), np.array([1., 0.]))
 
+
+def single_qubit_U3_layer(x_i, w_0, w_1, w_2, b_0, b_1, b_2, qubit):
+    """
+    Single-qubit U3 layer for encoding linear-transformed single feature x_i.
+    """
+    qml.U3(w_0 * x_i + b_0, w_1 * x_i + b_1, w_2 * x_i + b_2, wires=qubit)
+
+def make_separable_circ(n_layers: int)->Callable:
+    """
+    Creates a parameterised circuit with no entanglement.
+    """
+    
+    assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
+
+    device = qml.device("default.qubit", wires = 8)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 6)
+        """
+        for l in range(n_layers):
+            # single-qubit U3 gates with data-encoding
+            for i in range(8):
+                w_0, w_1, w_2, b_0, b_1, b_2 = params[l][i]
+                single_qubit_U3_layer(x[...,i], w_0, w_1, w_2, b_0, b_1, b_2, i)
+            # entanglement layer - none for separable circuit
+
+        # measure all qubits in Z basis
+        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+    
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 6), "Parameters must have shape (n_layers, 8, 6). Got: {}".format(params.shape)
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def controlledF(theta, wires):
     """
     The controlled F gate as in https://arxiv.org/abs/1606.09290
@@ -177,43 +249,6 @@ def make_entangled_circ_graph_state(n_layers: int, edge_list:List[Tuple[int, int
     
     return qfunc
 
-def make_separable_circ(n_layers: int)->Callable:
-    """
-    Creates a parameterised circuit with no entanglement.
-    """
-    
-    assert n_layers > 1, "Number of layers must be greater than 1. Got: {}".format(n_layers)
-
-    device = qml.device("default.qubit", wires = 8)
-    
-    def circuit(x, params):
-        """
-        input x has shape (, 8)
-        params has shape (n_layers, 8, 3)
-        """
-        for l in range(n_layers - 1):
-            for i in range(8):
-                V_i_l(x[...,i], params[l][i][0], params[l][i][1], params[l][i][2], i)
-
-        U3Layer(params[l-1], [0, 1, 2, 3, 4, 5, 6, 7])
-        
-        return [qml.expval(qml.PauliZ(0)), qml.expval(qml.PauliZ(1)), qml.expval(qml.PauliZ(2))]
-    
-    compiled_circuit = qml.compile(circuit)
-    qnode = qml.QNode(compiled_circuit, device, interface='torch')
-    
-    def qfunc(x, params):
-        """
-        QNode function that takes input x and parameters params.
-        """
-        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
-        assert params.shape == (n_layers, 8, 3), "Parameters must have shape (n_layers, 8, 3). Got: {}".format(params.shape)
-        circ_out = qnode(x, params)
-        circ_out = torch.stack(circ_out)
-        circ_out = torch.einsum("ij->ji", circ_out)
-        return circ_out
-    
-    return qfunc
 
 def make_entangled_circ_w_state(n_layers: int)->Callable:
     """
@@ -341,22 +376,10 @@ if __name__ == "__main__":
 
     # Example usage
     n_layers = 6
-    edge_list = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
-    circuit = make_entangled_circ_w_state(n_layers)
+    circuit = make_separable_circ(n_layers)
     
     x = torch.tensor(np.random.rand(12, 8))
-    params = torch.tensor(np.random.rand(n_layers, 8, 3), requires_grad=True)
+    params = torch.tensor(np.random.rand(n_layers, 8, 6), requires_grad=True)
     result = circuit(x, params)
     print("Circuit output shape:", result.shape)
     print("Circuit output:\n", result)
-
-    # W state example
-    wires = [0, 1, 2, 3]
-    dev = qml.device("default.qubit", wires=wires)
-    @qml.qnode(dev, interface = 'torch')
-    def w_state_circuit():
-        qml.PauliX(wires=wires[0])
-        create_W_state(wires)
-        return qml.probs()
-
-    print("W state probabilities:\n", w_state_circuit())
