@@ -61,11 +61,11 @@ for n_layers in n_layers_list:
     for seed in seeds_list:
         if (n_layers, seed) not in entangled_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'entangled' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled' --seed {seed} --n_layers {n_layers}"
             )
         if (n_layers, seed) not in separable_finished:
             command_list.append(
-                f"uv run Pong1PQuantum.py --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
+                f"uv run Pong1PQuantum.py --cuda_device 1 --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
             )
 
 if __name__ == "__main__":
