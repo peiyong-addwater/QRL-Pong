@@ -14,48 +14,6 @@ from .VQCBackbones import (
     WStateBackbone
 )
 
-# EDGE_LIST = [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
-
-class ElementwiseScaleShift(nn.Module):
-    """
-    Element-wise affine transform: y = x * scale + shift
-
-    Parameters are shaped for broadcasting against the input. Typical usage is to
-    pass the feature dimension size so the parameters have shape (features,) and
-    apply along the last dimension, but any broadcastable shape works.
-
-    Args:
-        shape: int or tuple defining the parameter shape (broadcastable to inputs).
-        init_scale: initial value for scale (default 1.0).
-        init_shift: initial value for shift (default 0.0).
-        learnable: if True, scale/shift are learnable parameters; otherwise buffers.
-    """
-
-    def __init__(
-        self,
-        shape: Union[int, Tuple[int, ...]],
-        init_scale: float = 1.0,
-        init_shift: float = 0.0,
-        learnable: bool = True,
-    ) -> None:
-        super().__init__()
-        if isinstance(shape, int):
-            param_shape: Tuple[int, ...] = (shape,)
-        else:
-            param_shape = tuple(shape)
-
-        if learnable:
-            self.scale = nn.Parameter(torch.full(param_shape, float(init_scale)))
-            self.shift = nn.Parameter(torch.full(param_shape, float(init_shift)))
-        else:
-            self.register_buffer("scale", torch.full(param_shape, float(init_scale)))
-            self.register_buffer("shift", torch.full(param_shape, float(init_shift)))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x * self.scale + self.shift
-
-    def extra_repr(self) -> str:
-        return f"shape={tuple(self.scale.shape)}"
 
 class PongClassicalCritic(nn.Module):
     def __init__(self, input_dim: int = 3, hidden_dim: int = 128):
