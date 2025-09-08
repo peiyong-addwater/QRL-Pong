@@ -139,7 +139,7 @@ class ElementwiseScaleShift(nn.Module):
         return f"shape={tuple(self.scale.shape)}"
 
 class SeparableBackbone(nn.Module):
-    def __init__(self, n_layers, output_dim, observation_space, edge_list=None):
+    def __init__(self, n_layers, output_dim, observation_space):
         super().__init__()
         self.output_dim = output_dim
         self.observation_dim = observation_space
@@ -150,7 +150,27 @@ class SeparableBackbone(nn.Module):
         self.params = nn.Parameter(
             torch.rand((n_layers, 8, 6), requires_grad=True)
             )
-        self.affine = ElementwiseScaleShift(shape=8)
+        self.affine = ElementwiseScaleShift(shape=8) # Element-wise affine scaling of the quantum backbone output
+
+    def forward(self, x):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
+        out = self.qfunc(x, self.params).to(x.dtype)
+        out = self.affine(out)
+        return out
+
+class EntangledBackbone(nn.Module):
+    def __init__(self, n_layers, output_dim, observation_space):
+        super().__init__()
+        self.output_dim = output_dim
+        self.observation_dim = observation_space
+        assert self.output_dim == 8 # only 8 output dim
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+
+        self.qfunc = make_entangled_circ(n_layers)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 6), requires_grad=True)
+            )
+        self.affine = ElementwiseScaleShift(shape=8) # Element-wise affine scaling of the quantum backbone output
 
     def forward(self, x):
         x = x * torch.pi * 2 # Scale inputs to [0, 2π]

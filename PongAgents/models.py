@@ -8,12 +8,14 @@ import numpy as np
 from typing import List, Tuple, Union, Callable
 
 from .VQCBackbones import (
-    GHZBackbone,
-    GraphStateBackbone,
     SeparableBackbone,
-    WStateBackbone
+    EntangledBackbone
 )
 
+BACKBONES = {
+    "entangled": EntangledBackbone,
+    "separable": SeparableBackbone,
+}
 
 class PongClassicalCritic(nn.Module):
     def __init__(self, input_dim: int = 3, hidden_dim: int = 128):
@@ -50,31 +52,25 @@ class PongHybridAgent(nn.Module):
         self.single_action_dim = env.single_action_space.n
         self.observation_dim = env.single_observation_space.shape[0]
         self.backbone = BACKBONES[agent_type](
-            output_dim=3,
+            output_dim=8,
             observation_space=self.observation_dim,
             **agent_args,
         )
-        # Element-wise affine scaling of the quantum backbone output
-        self.affine = ElementwiseScaleShift(shape=3)
-        self.critic = PongClassicalCritic(input_dim=3)
+        self.critic = PongClassicalCritic(input_dim=8)
         self.actor = PongClassicalPolicy(
-            input_dim=3,
+            input_dim=8,
             output_dim=self.single_action_dim,
         )
     
     def get_representation(self, x):
-        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.backbone(x)
-        hidden = self.affine(hidden)
         return hidden
     
     def get_value(self, x):
-        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.get_representation(x)
         return self.critic(hidden)
 
     def get_action_and_value(self, x, action=None):
-        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
         hidden = self.get_representation(x)
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)
@@ -122,10 +118,9 @@ if __name__ == "__main__":
     from pufferlib.ocean import env_creator
     import time
 
-    agent_type = "graph_state"
+    agent_type = "entangled"  # "entangled" or "separable"
     agent_args = {
-        "n_layers": 6,
-        "edge_list": [(3, 0), (2, 0), (6, 0), (4, 0), (5, 0), (3, 1), (2, 1), (4, 1), (5, 1), (7, 1), (0, 1)]
+        "n_layers": 6
     }
 
     env_name = 'puffer_pong'

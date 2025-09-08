@@ -35,7 +35,7 @@ class Args:
 
     # Agent specific arguments
     agent_type: str = "ghz"
-    """the type of the agent, choose from ["ghz", "graph_state", "separable", "w_state"] """
+    """the type of the agent, choose from ["entangled", "separable"] """
     n_layers: int = 2
     """the number of layers in the quantum actor network"""
     model_save_path: str = None
