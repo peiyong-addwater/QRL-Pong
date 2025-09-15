@@ -9,11 +9,13 @@ from typing import List, Tuple, Union, Callable
 
 from .VQCBackbones import (
     SeparableBackbone,
-    EntangledBackbone
+    EntangledBackbone,
+    EntangledBackboneTrainableZZ,
 )
 
 BACKBONES = {
     "entangled": EntangledBackbone,
+    "entangled_trainable_zz": EntangledBackboneTrainableZZ,
     "separable": SeparableBackbone,
 }
 
