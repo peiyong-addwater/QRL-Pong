@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4]
 
-n_layers_list = [1, 2, 5, 10, 20]
+n_layers_list = [1, 2, 5, 10, 20, 30, 40, 50]
 
 command_list = []
 
