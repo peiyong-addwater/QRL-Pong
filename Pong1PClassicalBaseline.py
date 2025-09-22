@@ -38,6 +38,8 @@ class Args:
     # Agent specific arguments
     model_save_path: str = None
     """the path to save the model"""
+    agent_type: str = "classical"
+    """Only 'classical' is supported in this file"""
 
     # Algorithm specific arguments
     total_timesteps: int = 10000000
@@ -91,7 +93,7 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong1PClassicalBaseline"
+    args.wandb_project_name = f"Pong1P"
 
     run_name = f"Pong1PCB2L__seed_{args.seed}_{int(time.time())}"
 

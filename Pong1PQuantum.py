@@ -93,7 +93,7 @@ if __name__ == "__main__":
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
-    args.wandb_project_name = f"Pong1PQBackbone"
+    args.wandb_project_name = f"Pong1P"
 
     run_name = f"Pong1PQFM_{args.agent_type}_QLayers_{args.n_layers}___seed_{args.seed}_{int(time.time())}"
 
