@@ -35,7 +35,7 @@ class Args:
 
     # Agent specific arguments
     agent_type: str = "separable"
-    """the type of the agent, choose from ["entangled", "separable", "entangled_trainable_zz"] """
+    """the type of the agent, choose from ["entangled", "separable", "entangled_trainable_crz"] """
     n_layers: int = 2
     """the number of layers in the quantum actor network"""
     model_save_path: str = None
