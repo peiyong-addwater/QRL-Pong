@@ -10,12 +10,12 @@ from typing import List, Tuple, Union, Callable
 from .VQCBackbones import (
     SeparableBackbone,
     EntangledBackbone,
-    EntangledBackboneTrainableZZ,
+    EntangledBackboneTrainableCRZ,
 )
 
 BACKBONES = {
     "entangled": EntangledBackbone,
-    "entangled_trainable_zz": EntangledBackboneTrainableZZ,
+    "entangled_trainable_crz": EntangledBackboneTrainableCRZ,
     "separable": SeparableBackbone,
 }
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     from pufferlib.ocean import env_creator
     import time
 
-    agent_type = "entangled"  # "entangled" or "separable"
+    agent_type = "entangled_trainable_crz"  # "entangled" or "separable"
     agent_args = {
         "n_layers": 6
     }
