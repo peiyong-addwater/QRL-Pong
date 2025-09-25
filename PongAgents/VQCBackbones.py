@@ -140,6 +140,49 @@ def make_entangled_circ_trainable_crz(n_layers: int)->Callable:
     
     return qfunc
 
+def make_entangled_circ_trainable_rzz(n_layers: int)->Callable:
+    """
+    Creates a parameterised circuit with entanglement and trainable RZZ gates.
+    The only difference from the separable circuit is the addition of RZZ gates
+    after each layer of single-qubit U3 gates, in a ring topology.
+    """
+
+    device = qml.device("default.qubit", wires = 8)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 7)
+        """
+        for l in range(n_layers):
+            # single-qubit U3 gates with data-encoding
+            for i in range(8):
+                w_0, w_1, w_2, b_0, b_1, b_2 = params[l][i][:6]
+                single_qubit_U3_layer(x[...,i], w_0, w_1, w_2, b_0, b_1, b_2, i)
+            # entanglement layer - RZZ gates in a ring topology
+            for i in range(8):
+                theta = params[l][i][6]
+                qml.IsingZZ(theta, wires=[i, (i+1)%8])
+
+        # measure all qubits in Z basis
+        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+    
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 7), "Parameters must have shape (n_layers, 8, 7). Got: {}".format(params.shape)
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
+
 class ElementwiseScaleShift(nn.Module):
     """
     Element-wise affine transform: y = x * scale + shift
@@ -241,6 +284,26 @@ class EntangledBackboneTrainableCRZ(nn.Module):
         out = self.affine(out)
         return out
 
+class EntangledBackboneTrainableIsingZZ(nn.Module):
+    def __init__(self, n_layers, output_dim, observation_space):
+        super().__init__()
+        self.output_dim = output_dim
+        self.observation_dim = observation_space
+        assert self.output_dim == 8 # only 8 output dim
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+
+        self.qfunc = make_entangled_circ_trainable_rzz(n_layers)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 7), requires_grad=True)
+            )
+        self.affine = ElementwiseScaleShift(shape=8) # Element-wise affine scaling of the quantum backbone output
+
+    def forward(self, x):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
+        out = self.qfunc(x, self.params).to(x.dtype)
+        out = self.affine(out)
+        return out
+
 if __name__ == "__main__":
     from pufferlib import vector
     from pufferlib.ocean import env_creator
@@ -265,14 +328,23 @@ if __name__ == "__main__":
     print("Entangled circuit output shape:", ent_result.shape)
     print("Entangled circuit output:\n", ent_result)
 
-    ent_trainablezz_circ = make_entangled_circ_trainable_crz(n_layers)
+    ent_trainablecrz_circ = make_entangled_circ_trainable_crz(n_layers)
     params_zz = torch.tensor(np.random.rand(n_layers, 8, 7), requires_grad=True)
+    ent_trainablecrz_result = ent_trainablecrz_circ(x, params_zz)
+    print("Entangled circuit with trainable CRZ output shape:", ent_trainablecrz_result.shape)
+    print("Entangled circuit with trainable CRZ output:\n", ent_trainablecrz_result)
+
+    ent_trainablezz_circ = make_entangled_circ_trainable_rzz(n_layers)
     ent_trainablezz_result = ent_trainablezz_circ(x, params_zz)
-    print("Entangled circuit with trainable ZZ output shape:", ent_trainablezz_result.shape)
-    print("Entangled circuit with trainable ZZ output:\n", ent_trainablezz_result)
+    print("Entangled circuit with trainable RZZ output shape:", ent_trainablezz_result.shape)
+    print("Entangled circuit with trainable RZZ output:\n", ent_trainablezz_result)
 
-    ent_backbone_trainablezz = EntangledBackboneTrainableCRZ(n_layers, 8, 8)
+    ent_backbone_trainablecrz = EntangledBackboneTrainableCRZ(n_layers, 8, 8)
+    output_crz = ent_backbone_trainablecrz(x)
+    print("EntangledBackboneTrainableCRZ output shape:", output_crz.shape)
+    print("EntangledBackboneTrainableCRZ output:\n", output_crz)
+
+    ent_backbone_trainablezz = EntangledBackboneTrainableIsingZZ(n_layers, 8, 8)
     output_zz = ent_backbone_trainablezz(x)
-    print("EntangledBackboneTrainableCRZ output shape:", output_zz.shape)
-    print("EntangledBackboneTrainableCRZ output:\n", output_zz)
-
+    print("EntangledBackboneTrainableIsingZZ output shape:", output_zz.shape)
+    print("EntangledBackboneTrainableIsingZZ output:\n", output_zz)
