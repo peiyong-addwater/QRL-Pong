@@ -12,6 +12,7 @@ from .VQCBackbones import (
     EntangledBackbone,
     EntangledBackboneTrainableCRZ,
     EntangledBackboneTrainableIsingZZ,
+    EntangledBackboneTrainableCP,
 )
 
 BACKBONES = {
@@ -19,6 +20,7 @@ BACKBONES = {
     "entangled_trainable_crz": EntangledBackboneTrainableCRZ,
     "separable": SeparableBackbone,
     "entangled_trainable_rzz": EntangledBackboneTrainableIsingZZ,
+    "entangled_trainable_cp": EntangledBackboneTrainableCP,
 }
 
 class PongClassicalCritic(nn.Module):

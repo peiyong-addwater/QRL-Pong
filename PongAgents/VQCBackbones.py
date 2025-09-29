@@ -183,6 +183,47 @@ def make_entangled_circ_trainable_rzz(n_layers: int)->Callable:
     
     return qfunc
 
+def make_entanglement_circ_trainable_cp(n_layers:int)->Callable:
+    """
+    Parameterised circuit with trainable controlled-phase gates, in a ring topology.
+    """
+    device = qml.device("default.qubit", wires = 8)
+    
+    def circuit(x, params):
+        """
+        input x has shape (, 8)
+        params has shape (n_layers, 8, 7)
+        """
+        for l in range(n_layers):
+            # single-qubit U3 gates with data-encoding
+            for i in range(8):
+                w_0, w_1, w_2, b_0, b_1, b_2 = params[l][i][:6]
+                single_qubit_U3_layer(x[...,i], w_0, w_1, w_2, b_0, b_1, b_2, i)
+            # entanglement layer - CP gates in a ring topology
+            for i in range(8):
+                theta = params[l][i][6]
+                qml.ControlledPhaseShift(theta, wires=[i, (i+1)%8])
+
+        # measure all qubits in Z basis
+        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+    
+    compiled_circuit = qml.compile(circuit)
+    qnode = qml.QNode(compiled_circuit, device, interface='torch')
+    
+    def qfunc(x, params):
+        """
+        QNode function that takes input x and parameters params.
+        """
+        assert x.shape[-1] == 8, "Input x must have shape (..., 8). Got: {}".format(x.shape)
+        assert params.shape == (n_layers, 8, 7), "Parameters must have shape (n_layers, 8, 7). Got: {}".format(params.shape)
+        circ_out = qnode(x, params)
+        circ_out = torch.stack(circ_out)
+        circ_out = torch.einsum("ij->ji", circ_out)
+        return circ_out
+    
+    return qfunc
+    
+
 class ElementwiseScaleShift(nn.Module):
     """
     Element-wise affine transform: y = x * scale + shift
@@ -304,6 +345,26 @@ class EntangledBackboneTrainableIsingZZ(nn.Module):
         out = self.affine(out)
         return out
 
+class EntangledBackboneTrainableCP(nn.Module):
+    def __init__(self, n_layers, output_dim, observation_space):
+        super().__init__()
+        self.output_dim = output_dim
+        self.observation_dim = observation_space
+        assert self.output_dim == 8 # only 8 output dim
+        assert self.observation_dim == 8 # paddly_yl, paddle_yr, ball_x, ball_y, ball_vx, ball_vy, score_l, score_r
+
+        self.qfunc = make_entanglement_circ_trainable_cp(n_layers)
+        self.params = nn.Parameter(
+            torch.rand((n_layers, 8, 7), requires_grad=True)
+            )
+        self.affine = ElementwiseScaleShift(shape=8) # Element-wise affine scaling of the quantum backbone output
+
+    def forward(self, x):
+        x = x * torch.pi * 2 # Scale inputs to [0, 2π]
+        out = self.qfunc(x, self.params).to(x.dtype)
+        out = self.affine(out)
+        return out
+
 if __name__ == "__main__":
     from pufferlib import vector
     from pufferlib.ocean import env_creator
@@ -348,3 +409,9 @@ if __name__ == "__main__":
     output_zz = ent_backbone_trainablezz(x)
     print("EntangledBackboneTrainableIsingZZ output shape:", output_zz.shape)
     print("EntangledBackboneTrainableIsingZZ output:\n", output_zz)
+
+    ent_backbone_trainablecp = EntangledBackboneTrainableCP(n_layers, 8, 8)
+    output_cp = ent_backbone_trainablecp(x)
+    print("EntangledBackboneTrainableCP output shape:", output_cp.shape)
+    print("EntangledBackboneTrainableCP output:\n", output_cp)
+    
