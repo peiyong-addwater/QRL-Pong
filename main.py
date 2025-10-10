@@ -26,7 +26,7 @@ def run_experiment(command: str):
 
 seeds_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-n_layers_list = [1, 2, 3, 4, 5]
+n_layers_list = [1, 2]
 
 command_list = []
 
@@ -126,5 +126,3 @@ if __name__ == "__main__":
         executor.submit(run_experiment, command)
     executor.shutdown(wait=True)
     print("======= all commands finished")
-
-

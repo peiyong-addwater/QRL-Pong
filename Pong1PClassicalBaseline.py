@@ -40,7 +40,7 @@ class Args:
     """the path to save the model"""
     agent_type: str = "classical"
     """Only 'classical' is supported in this file"""
-    n_layers: str = "Classical_Two_Layers_48_params"
+    n_layers: str = "Classical_Two_Layers_64_params"
 
     # Algorithm specific arguments
     total_timesteps: int = 10000000
