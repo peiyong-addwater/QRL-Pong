@@ -34,8 +34,8 @@ def make_separable_circ(n_layers: int)->Callable:
                 single_qubit_U3_layer(x[...,i], w_0, w_1, w_2, b_0, b_1, b_2, i)
             # entanglement layer - none for separable circuit
 
-        # measure all qubits in Z basis
-        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+        # measure all qubits in X basis
+        return [qml.expval(qml.PauliX(i)) for i in range(8)]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -77,8 +77,8 @@ def make_entangled_circ(n_layers: int)->Callable:
             for i in range(8):
                 qml.CZ(wires=[i, (i+1)%8])
 
-        # measure all qubits in Z basis
-        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+        # measure all qubits in X basis
+        return [qml.expval(qml.PauliX(i)) for i in range(8)]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -121,8 +121,8 @@ def make_entangled_circ_trainable_crz(n_layers: int)->Callable:
                 theta = params[l][i][6]
                 qml.CRZ(theta, wires=[i, (i+1)%8])
 
-        # measure all qubits in Z basis
-        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+        # measure all qubits in X basis
+        return [qml.expval(qml.PauliX(i)) for i in range(8)]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -164,8 +164,8 @@ def make_entangled_circ_trainable_rzz(n_layers: int)->Callable:
                 theta = params[l][i][6]
                 qml.IsingZZ(theta, wires=[i, (i+1)%8])
 
-        # measure all qubits in Z basis
-        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+        # measure all qubits in X basis
+        return [qml.expval(qml.PauliX(i)) for i in range(8)]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
@@ -204,8 +204,8 @@ def make_entanglement_circ_trainable_cp(n_layers:int)->Callable:
                 theta = params[l][i][6]
                 qml.ControlledPhaseShift(theta, wires=[i, (i+1)%8])
 
-        # measure all qubits in Z basis
-        return [qml.expval(qml.PauliZ(i)) for i in range(8)]
+        # measure all qubits in X basis
+        return [qml.expval(qml.PauliX(i)) for i in range(8)]
     
     compiled_circuit = qml.compile(circuit)
     qnode = qml.QNode(compiled_circuit, device, interface='torch')
