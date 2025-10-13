@@ -148,7 +148,7 @@ if __name__ == "__main__":
     env_creator = env_creator(env_name)
     envs = vector.make(env_creator, num_envs=1, num_workers=1, batch_size=1, backend=vector.Multiprocessing, env_kwargs={'num_envs': args.num_envs, 'log_interval':1})
 
-    agent = PongClassicalAgent(
+    agent = PongClassicalAgent4096PBackbone(
         env=envs
     ).to(device)
 
