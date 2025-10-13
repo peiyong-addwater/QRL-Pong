@@ -30,7 +30,7 @@ command_list = []
 
 for seed in seeds_list:
     command_list.append(
-        f"uv run Pong1PClassicalBaseline.py --num_envs 32 --num_steps 128 --seed {seed}"
+        f"uv run Pong1PClassicalBaseline64P.py --num_envs 32 --num_steps 128 --seed {seed}"
     )
 
 if __name__ == "__main__":
