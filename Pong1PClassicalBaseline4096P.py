@@ -38,7 +38,7 @@ class Args:
     # Agent specific arguments
     model_save_path: str = None
     """the path to save the model"""
-    agent_type: str = "classical"
+    agent_type: str = "classical4096P"
     """Only 'classical' is supported in this file"""
     n_layers: str = "Classical_Two_Layers_4096_params"
 
