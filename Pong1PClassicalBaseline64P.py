@@ -14,7 +14,7 @@ import tyro
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from PongAgents import PongClassicalAgent
+from PongAgents import PongClassicalAgent64PBackbone
 
 @dataclass
 class Args:
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     args.num_iterations = args.total_timesteps // args.batch_size
     args.wandb_project_name = f"Pong1P"
 
-    run_name = f"Pong1PCB2L__seed_{args.seed}_{int(time.time())}"
+    run_name = f"Pong1PCB2L64P__seed_{args.seed}_{int(time.time())}"
 
     if args.model_save_path is None:
         if not os.path.exists("trained-models"):

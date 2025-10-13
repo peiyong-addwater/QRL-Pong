@@ -1,1 +1,1 @@
-from .models import PongHybridAgent, PongClassicalAgent
+from .models import PongHybridAgent, PongClassicalAgent64PBackbone, PongClassicalAgent4096PBackbone
