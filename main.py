@@ -110,7 +110,7 @@ for n_layers in n_layers_list:
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
 
-    NUM_CPUS = 15
+    NUM_CPUS = 25
 
     n_workers = len(command_list) if len(command_list) < NUM_CPUS else NUM_CPUS
 
