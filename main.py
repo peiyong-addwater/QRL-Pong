@@ -33,9 +33,9 @@ command_list = []
 
 separable_finished = set()
 entangled_finished = set()
-entangled_trainable_crz_finished = set()
+#entangled_trainable_crz_finished = set()
 entangled_trainable_rzz_finished = set()
-entangled_trainable_cp_finished = set()
+#entangled_trainable_cp_finished = set()
 
 # the (QLayers, seed) combo that has been finished 
 trained_models_dir = os.path.join("trained-models", "Pong1PModels")
