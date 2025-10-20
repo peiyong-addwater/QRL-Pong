@@ -60,13 +60,13 @@ for trained_model_file in os.listdir(trained_models_dir):
             separable_finished.add((n_layers, seed))
             print(f"Found separable actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process entangled backbone with trainable ZZ models
-    if "entangled_trainable_crz" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            entangled_trainable_crz_finished.add((n_layers, seed))
-            print(f"Found entangled_trainable_zz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#    if "entangled_trainable_crz" in trained_model_file:
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            entangled_trainable_crz_finished.add((n_layers, seed))
+#            print(f"Found entangled_trainable_zz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process entangled backbone with trainable RZZ models
     if "entangled_trainable_rzz" in trained_model_file:
         match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
@@ -76,13 +76,13 @@ for trained_model_file in os.listdir(trained_models_dir):
             entangled_trainable_rzz_finished.add((n_layers, seed))
             print(f"Found entangled_trainable_rzz actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
     # process entangled backbone with trainable CP models
-    if "entangled_trainable_cp" in trained_model_file:
-        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
-        if match:
-            n_layers = int(match.group(1))
-            seed = int(match.group(2))
-            entangled_trainable_cp_finished.add((n_layers, seed))
-            print(f"Found entangled_trainable_cp actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
+#    if "entangled_trainable_cp" in trained_model_file:
+#        match = re.search(r"QLayers_(\d+)___seed_(\d+)_", trained_model_file)
+#        if match:
+#            n_layers = int(match.group(1))
+#            seed = int(match.group(2))
+#            entangled_trainable_cp_finished.add((n_layers, seed))
+#            print(f"Found entangled_trainable_cp actor model: n_layers={n_layers}, seed={seed}. Excluding from commands.")
 
 for n_layers in n_layers_list:
     for seed in seeds_list:
@@ -94,18 +94,18 @@ for n_layers in n_layers_list:
             command_list.append(
                 f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'separable' --seed {seed} --n_layers {n_layers}"
             )
-        if (n_layers, seed) not in entangled_trainable_crz_finished:
-            command_list.append(
-                f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled_trainable_crz' --seed {seed} --n_layers {n_layers}"
-            )
+#        if (n_layers, seed) not in entangled_trainable_crz_finished:
+#            command_list.append(
+#                f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled_trainable_crz' --seed {seed} --n_layers {n_layers}"
+#            )
         if (n_layers, seed) not in entangled_trainable_rzz_finished:
             command_list.append(
                 f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled_trainable_rzz' --seed {seed} --n_layers {n_layers}"
             )
-        if (n_layers, seed) not in entangled_trainable_cp_finished:
-            command_list.append(
-                f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled_trainable_cp' --seed {seed} --n_layers {n_layers}"
-            )
+#        if (n_layers, seed) not in entangled_trainable_cp_finished:
+#            command_list.append(
+#                f"uv run Pong1PQuantum.py --cuda_device 0 --num_envs 32 --num_steps 128 --agent_type 'entangled_trainable_cp' --seed {seed} --n_layers {n_layers}"
+#            )
 
 if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor
