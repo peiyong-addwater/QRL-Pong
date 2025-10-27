@@ -97,3 +97,35 @@ def linear_cka(X, Y):
     return num / den
 
 
+if __name__ == "__main__":
+    import json
+    import os
+
+    # path to the json file containing the file names of the representations
+    PATH_DICT_PATH = os.path.join(os.path.dirname(__file__), 'reps_paths_dict.json')
+
+    # types of backbones used
+    BACKBONE_TYPES = ['separable', 'entangled', 'entangled_trainable_rzz', 'classical']
+    CLASSICAL_BACKBONE_TYPES = ['64P', '4096P']
+
+    with open(PATH_DICT_PATH, "r") as f:
+        reps_paths_dict = json.load(f)
+
+    # flatten the path dictionary in a more orderly way
+    rep_file_list = []
+    for backbone_type in BACKBONE_TYPES:
+        print(f"Processing backbone type: {backbone_type}")
+        if backbone_type == 'classical':
+            layer_keys = CLASSICAL_BACKBONE_TYPES
+        else:
+            # sort the layer keys to ensure consistent ordering
+            layer_keys = list(reps_paths_dict[backbone_type].keys())
+            layer_keys.sort()
+        print(layer_keys)
+        for layer_key in layer_keys:
+            reps_paths_dict[backbone_type][layer_key].sort()
+            rep_file_list.extend(reps_paths_dict[backbone_type][layer_key])
+    print(rep_file_list)
+    sim_scores = {}
+    
+    
