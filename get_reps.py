@@ -7,7 +7,7 @@ import json
 from pufferlib import vector
 from pufferlib.ocean import env_creator
 
-from PongAgents import PongHybridAgent
+from PongAgents import PongHybridAgent, PongClassicalAgent4096PBackbone, PongClassicalAgent64PBackbone
 
 # device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -26,9 +26,11 @@ os.makedirs(REPS_FOLDER, exist_ok=True)
 
 # path to the trained quantum models
 MODEL_FOLDER = os.path.join("trained-models", "Pong1PModels")
+CLASSICAL_MODEL_FOLDER = os.path.join("trained-models", "Pong1PClassicalModels")
 
 # get the files in the model folder
 model_files = os.listdir(MODEL_FOLDER)
+classical_model_files = os.listdir(CLASSICAL_MODEL_FOLDER)
 
 # dummy environment to get observation shape
 env_name = 'puffer_pong'
@@ -40,9 +42,59 @@ reps_paths_dict = {}
 reps_paths_dict["separable"] = {}
 reps_paths_dict["entangled"] = {}
 reps_paths_dict["entangled_trainable_rzz"] = {}
+reps_paths_dict["classical"] = {}
+reps_paths_dict["classical"]["64P"] = []
+reps_paths_dict["classical"]["4096P"] = []
+
+# generate representations for each classical model
+file_count = 0
+for model_file in classical_model_files:
+    # load the trained model
+    model_path = os.path.join(CLASSICAL_MODEL_FOLDER, model_file)
+
+    # filename has the format:
+    # Pong1PCB2L<64P or 4096P>__seed_<seed>_<timestamp>.pth
+    # extract the seed from the file name
+    match = re.search(r'Pong1PCB2L(64P|4096P)__seed_(\d+)_', model_file)
+    if match:
+        print(f"======File Count: {file_count+1}/{len(model_files)} Processing Classical model: {model_file}======")
+        if "64P" in model_file:
+            agent = PongClassicalAgent64PBackbone(env=envs).to(device)
+            print("Loading 64P Classical Backbone model")
+            agent.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"Model loaded successfully.")
+            with torch.no_grad():
+                # get representations
+                reps = agent.get_representation(observations)
+                print(f"Generated representations with shape: {reps.shape}")
+                # save representations
+                reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_64P_seed_{match.group(2)}.npy")
+                np.save(reps_path, reps.cpu().numpy())
+                print(f"Saved representations to {reps_path}")
+                reps_paths_dict["classical"]["64P"].append(reps_path)
+                print("---------------------------------------------------")
+        elif "4096P" in model_file:
+            agent = PongClassicalAgent4096PBackbone(env=envs).to(device)
+            print("Loading 4096P Classical Backbone model")
+            agent.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"Model loaded successfully.")
+            with torch.no_grad():
+                # get representations
+                reps = agent.get_representation(observations)
+                print(f"Generated representations with shape: {reps.shape}")
+                # save representations
+                reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_4096P_seed_{match.group(2)}.npy")
+                np.save(reps_path, reps.cpu().numpy())
+                print(f"Saved representations to {reps_path}")
+                reps_paths_dict["classical"]["4096P"].append(reps_path)
+                print("---------------------------------------------------")
+        print()
+    file_count += 1
 
 
-# generate representations for each model
+
+
+# generate representations for each quantum model
 file_count = 0
 for model_file in model_files:
     # load the trained model
