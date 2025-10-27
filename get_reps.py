@@ -85,5 +85,5 @@ with open("reps_paths_dict.json", "w") as f:
     json.dump(reps_paths_dict, f, indent=4)
 
 print("Saved representation paths to reps_paths_dict.json")
-
+envs.close()
 
