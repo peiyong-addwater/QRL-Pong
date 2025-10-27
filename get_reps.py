@@ -50,6 +50,7 @@ for model_file in model_files:
         agent = PongHybridAgent(agent_type=agent_type, env = envs, agent_args = {"n_layers": num_layers}).to(device)
         print(f"Loading model from {model_path}")
         agent.load_state_dict(torch.load(model_path, map_location=device))
+        print(f"Model loaded successfully.")
         with torch.no_grad():
             # get representations
             reps = agent.get_representation(observations)
