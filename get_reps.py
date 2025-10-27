@@ -43,6 +43,7 @@ reps_paths_dict["entangled_trainable_rzz"] = {}
 
 
 # generate representations for each model
+file_count = 0
 for model_file in model_files:
     # load the trained model
     model_path = os.path.join(MODEL_FOLDER, model_file)
@@ -57,8 +58,8 @@ for model_file in model_files:
         
         if num_layers not in reps_paths_dict[agent_type].keys():
             reps_paths_dict[agent_type][num_layers] = []
-        
-        print(f"======Processing model: {model_file} | Agent Type: {agent_type} | Num Layers: {num_layers}======")
+
+        print(f"======File Count: {file_count}/{len(model_files)} Processing model: {model_file} | Agent Type: {agent_type} | Num Layers: {num_layers}======")
         agent = PongHybridAgent(agent_type=agent_type, env = envs, agent_args = {"n_layers": num_layers}).to(device)
         
         print(f"Loading model from {model_path}")
