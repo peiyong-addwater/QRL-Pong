@@ -59,7 +59,7 @@ for model_file in model_files:
         if num_layers not in reps_paths_dict[agent_type].keys():
             reps_paths_dict[agent_type][num_layers] = []
 
-        print(f"======File Count: {file_count}/{len(model_files)} Processing model: {model_file} | Agent Type: {agent_type} | Num Layers: {num_layers}======")
+        print(f"======File Count: {file_count+1}/{len(model_files)} Processing model: {model_file} | Agent Type: {agent_type} | Num Layers: {num_layers}======")
         agent = PongHybridAgent(agent_type=agent_type, env = envs, agent_args = {"n_layers": num_layers}).to(device)
         
         print(f"Loading model from {model_path}")
@@ -76,6 +76,9 @@ for model_file in model_files:
             print(f"Saved representations to {reps_path}")
             reps_paths_dict[agent_type][num_layers].append(reps_path)
             print("---------------------------------------------------")
+        print()
+        
+    file_count += 1
 
 # save the paths to the representations in a json file at the root of the project
 with open("reps_paths_dict.json", "w") as f:

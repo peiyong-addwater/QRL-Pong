@@ -1,0 +1,162 @@
+{
+    "separable": {
+        "1": [
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_1_seed_2.npy"
+        ],
+        "4": [
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_4_seed_5.npy"
+        ],
+        "3": [
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_3_seed_7.npy"
+        ],
+        "2": [
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_2_seed_5.npy"
+        ],
+        "5": [
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_separable_layers_5_seed_7.npy"
+        ]
+    },
+    "entangled": {
+        "1": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_1_seed_1.npy"
+        ],
+        "2": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_2_seed_8.npy"
+        ],
+        "3": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_3_seed_1.npy"
+        ],
+        "4": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_layers_4_seed_9.npy"
+        ]
+    },
+    "entangled_trainable_rzz": {
+        "2": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_2_seed_6.npy"
+        ],
+        "1": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_1_seed_5.npy"
+        ],
+        "3": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_2.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_3_seed_8.npy"
+        ],
+        "4": [
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_8.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_7.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_3.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_6.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_1.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_9.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_0.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_4.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_5.npy",
+            "collected_reps/Pong1PQFMXObsReps_entangled_trainable_rzz_layers_4_seed_2.npy"
+        ]
+    }
+}
