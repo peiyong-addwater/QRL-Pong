@@ -144,11 +144,11 @@ if __name__ == "__main__":
     # calculate CKA for each pair of representation files
     # and store it in dataframes to be saved as csv files
     cka_results = {}
-    # generate the list of pairs without repetition
+    # generate the list of pairs
     rep_file_keys = list(rep_file_list.keys())
     task_list = []
     for i in range(len(rep_file_keys)):
-        for j in range(i, len(rep_file_keys)):
+        for j in range(len(rep_file_keys)):
             rep_key_1 = rep_file_keys[i]
             rep_key_2 = rep_file_keys[j]
             task_list.append((rep_key_1, rep_key_2))
