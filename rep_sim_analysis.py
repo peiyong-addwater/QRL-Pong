@@ -101,6 +101,7 @@ if __name__ == "__main__":
     import json
     import os
     import pandas as pd
+    import time
 
     # path to the json file containing the file names of the representations
     PATH_DICT_PATH = os.path.join(os.path.dirname(__file__), 'reps_paths_dict.json')
@@ -151,8 +152,9 @@ if __name__ == "__main__":
             rep_key_2 = rep_file_keys[j]
             task_list.append((rep_key_1, rep_key_2))
     # progress through the task list
+    total_start_time = time.time()
     for idx, (rep_key_1, rep_key_2) in enumerate(task_list):
-        print(f"Calculating CKA for pair {idx+1}/{len(task_list)}: {rep_key_1} vs {rep_key_2}", end='\r')
+        step_start_time = time.time()
         # load the representations
         rep_1 = np.load(rep_file_list[rep_key_1])
         rep_2 = np.load(rep_file_list[rep_key_2])
@@ -161,6 +163,9 @@ if __name__ == "__main__":
         # store the result
         cka_results[rep_key_1] = {}
         cka_results[rep_key_1][rep_key_2] = cka_value
+        step_time = time.time() - step_start_time
+        total_time_till_now = time.time() - total_start_time
+        print(f"Calculated CKA for pair {idx+1}/{len(task_list)}: {rep_key_1} vs {rep_key_2} (Time Used: {total_time_till_now:.2f}s, Est. Remaining Time: {(total_time_till_now/(idx+1))*(len(task_list)-idx-1):.2f}s)", end='\r')
     # convert to dataframe
     cka_df = pd.DataFrame(cka_results)
     # save to csv
