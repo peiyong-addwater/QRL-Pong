@@ -115,14 +115,14 @@ if __name__ == "__main__":
     # flatten the path dictionary in a more orderly way
     rep_file_list = {}
     for backbone_type in BACKBONE_TYPES:
-        print(f"Processing backbone type: {backbone_type}")
+        # print(f"Processing backbone type: {backbone_type}")
         if backbone_type == 'classical':
             layer_keys = CLASSICAL_BACKBONE_TYPES
         else:
             # sort the layer keys to ensure consistent ordering
             layer_keys = list(reps_paths_dict[backbone_type].keys())
             layer_keys.sort()
-        print(layer_keys)
+        # print(layer_keys)
         for layer_key in layer_keys:
             reps_paths_dict[backbone_type][layer_key].sort()
             # extract the seed number
