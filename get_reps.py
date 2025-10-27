@@ -26,7 +26,7 @@ os.makedirs(REPS_FOLDER, exist_ok=True)
 
 # path to the trained quantum models
 MODEL_FOLDER = os.path.join("trained-models", "Pong1PModels")
-CLASSICAL_MODEL_FOLDER = os.path.join("trained-models", "Pong1PClassicalModels")
+CLASSICAL_MODEL_FOLDER = os.path.join("trained-models", "Pong1PClassicalBaseline")
 
 # get the files in the model folder
 model_files = os.listdir(MODEL_FOLDER)
