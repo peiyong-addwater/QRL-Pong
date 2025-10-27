@@ -26,7 +26,7 @@ print(f"Using device: {device}")
 # env setup
 env_name = 'puffer_pong'
 env_creator = env_creator(env_name)
-envs = vector.make(env_creator, num_envs=1, num_workers=1, batch_size=1, backend=vector.Multiprocessing, env_kwargs={'num_envs': 1, 'log_interval':1})
+envs = vector.make(env_creator, num_envs=1, num_workers=1, batch_size=1, backend=vector.Multiprocessing, env_kwargs={'num_envs': NUM_ENVS, 'log_interval':1})
 
 # initialize agent
 agent = PongClassicalAgent4096PBackbone(env=envs).to(device)
@@ -35,34 +35,27 @@ agent.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 print(f"Loaded trained model from {MODEL_PATH}")
 
 # storage setup
-obs = []
+obs = torch.zeros((NUM_STEPS, NUM_ENVS) + envs.single_observation_space.shape).to(device)
 
 # start the game
 next_obs, _ = envs.reset(seed=0)
 next_obs = torch.Tensor(next_obs).to(device)
 next_done = False
 
-for env_id in range(NUM_ENVS):
-    print(f"Collecting observations from environment {env_id+1}/{NUM_ENVS}")
-    step = 0
-    while step < NUM_STEPS and not next_done:
-        step += 1
-        # store the observation
-        obs.append(next_obs.flatten().cpu().numpy())
-
-        with torch.no_grad():
-            action, logprob, _, value = agent.get_action_and_value(next_obs)
-        next_obs, reward, terminations, truncations, infos = envs.step(action.cpu().numpy())
-        next_done = np.logical_or(terminations, truncations)
-        next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(next_done).to(device)
-        next_done = bool(next_done.item())
-        print(f"Env {env_id+1}, Step {step+1}/{NUM_STEPS}, Done? {next_done}", end='\r')
+for step in range(NUM_STEPS):
+    # store the observation
+    obs[step] = next_obs
+    with torch.no_grad():
+        action, logprob, _, value = agent.get_action_and_value(next_obs)
+    next_obs, reward, terminations, truncations, infos = envs.step(action.cpu().numpy())
+    next_done = np.logical_or(terminations, truncations)
+    next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(next_done).to(device)
+    print(f"Step {step+1}/{NUM_STEPS}", end='\r')
 
 # close environments
 envs.close()
-obs = np.array(obs)
 # save the collected observations
 os.makedirs(SAVE_FOLDER, exist_ok=True)
 # print shape of saved observations
 print(f"Collected observations shape: {obs.shape}")
-np.save(SAVE_PATH, obs)
+np.save(SAVE_PATH, obs.cpu().numpy())
