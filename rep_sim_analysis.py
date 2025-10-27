@@ -144,18 +144,23 @@ if __name__ == "__main__":
     cka_results = {}
     # generate the list of pairs without repetition
     rep_file_keys = list(rep_file_list.keys())
+    task_list = []
     for i in range(len(rep_file_keys)):
         for j in range(i, len(rep_file_keys)):
             rep_key_1 = rep_file_keys[i]
             rep_key_2 = rep_file_keys[j]
-            print(f"Calculating CKA between {rep_key_1} and {rep_key_2}")
-            # load the representations
-            rep_1 = np.load(rep_file_list[rep_key_1])
-            rep_2 = np.load(rep_file_list[rep_key_2])
-            # compute CKA
-            cka_value = linear_cka(rep_1, rep_2)
-            cka_results[rep_key_1] = {}
-            cka_results[rep_key_1][rep_key_2] = cka_value
+            task_list.append((rep_key_1, rep_key_2))
+    # progress through the task list
+    for idx, (rep_key_1, rep_key_2) in enumerate(task_list):
+        print(f"Calculating CKA for pair {idx+1}/{len(task_list)}: {rep_key_1} vs {rep_key_2}", end='\r')
+        # load the representations
+        rep_1 = np.load(rep_file_list[rep_key_1])
+        rep_2 = np.load(rep_file_list[rep_key_2])
+        # calculate CKA
+        cka_value = linear_cka(rep_1, rep_2)
+        # store the result
+        cka_results[rep_key_1] = {}
+        cka_results[rep_key_1][rep_key_2] = cka_value
     # convert to dataframe
     cka_df = pd.DataFrame(cka_results)
     # save to csv
