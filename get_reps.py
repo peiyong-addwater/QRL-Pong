@@ -57,7 +57,7 @@ for model_file in classical_model_files:
     # extract the seed from the file name
     match = re.search(r'Pong1PCB2L(64P|4096P)__seed_(\d+)_', model_file)
     if match:
-        print(f"======File Count: {file_count+1}/{len(model_files)} Processing Classical model: {model_file}======")
+        print(f"======File Count: {file_count+1}/{len(classical_model_files)} Processing Classical model: {model_file}======")
         if "64P" in model_file:
             agent = PongClassicalAgent64PBackbone(env=envs).to(device)
             print("Loading 64P Classical Backbone model")
