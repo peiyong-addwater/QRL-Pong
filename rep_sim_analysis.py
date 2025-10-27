@@ -141,5 +141,20 @@ if __name__ == "__main__":
 
     # calculate CKA for each pair of representation files
     # and store it in dataframes to be saved as csv files
+    cka_results = {}
+    for rep_name1, path1 in rep_file_list.items():
+        reps1 = np.load(path1)
+        cka_results[rep_name1] = {}
+        for rep_name2, path2 in rep_file_list.items():
+            # avoid repetition
+            if rep_name1 != rep_name2:
+                reps2 = np.load(path2)
+                cka_value = linear_cka(reps1, reps2)
+                cka_results[rep_name1][rep_name2] = cka_value
+    # convert to dataframe
+    cka_df = pd.DataFrame(cka_results)
+    # save to csv
+    cka_df.to_csv(os.path.join(os.path.dirname(__file__), 'cka_results.csv'))
+    print("CKA results saved to cka_results.csv")
     
     
