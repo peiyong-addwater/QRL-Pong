@@ -1171,6 +1171,7 @@ name = "qrl-pong"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "pandas" },
     { name = "pennylane" },
     { name = "pufferlib" },
     { name = "tensorboard" },
@@ -1183,6 +1184,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pandas", specifier = ">=2.3.1" },
     { name = "pennylane", specifier = ">=0.41.1" },
     { name = "pufferlib", specifier = ">=3.0.0" },
     { name = "tensorboard", specifier = ">=2.20.0" },

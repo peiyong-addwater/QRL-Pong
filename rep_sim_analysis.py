@@ -100,6 +100,7 @@ def linear_cka(X, Y):
 if __name__ == "__main__":
     import json
     import os
+    import pandas as pd
 
     # path to the json file containing the file names of the representations
     PATH_DICT_PATH = os.path.join(os.path.dirname(__file__), 'reps_paths_dict.json')
@@ -138,6 +139,7 @@ if __name__ == "__main__":
                 rep_file_list[f"{backbone_type}_{layer_key}_seed_{seed_num}"] = file_path
 
 
-    
+    # calculate CKA for each pair of representation files
+    # and store it in dataframes to be saved as csv files
     
     

@@ -5,6 +5,7 @@ description = "Simple quantum-classical-hybrid agent to play the Atari game Pong
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "pandas>=2.3.1",
     "pennylane>=0.41.1",
     "pufferlib>=3.0.0",
     "tensorboard>=2.20.0",
