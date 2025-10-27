@@ -58,4 +58,7 @@ envs.close()
 os.makedirs(SAVE_FOLDER, exist_ok=True)
 # print shape of saved observations
 print(f"Collected observations shape: {obs.shape}")
+# flatten the first two dimensions (NUM_STEPS, NUM_ENVS)
+obs = obs.reshape(-1, 8)  # assuming observation shape is (8,)
+print(f"Flattened saved observations shape: {obs.shape}")
 np.save(SAVE_PATH, obs.cpu().numpy())
