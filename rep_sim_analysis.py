@@ -163,7 +163,8 @@ if __name__ == "__main__":
         # compute CKA
         cka_value = linear_cka(rep_1, rep_2)
         # store the result
-        cka_results[rep_key_1] = {}
+        if rep_key_1 not in cka_results.keys():
+            cka_results[rep_key_1] = {}
         cka_results[rep_key_1][rep_key_2] = cka_value
     # convert to dataframe
     cka_df = pd.DataFrame(cka_results)
