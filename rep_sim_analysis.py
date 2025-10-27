@@ -112,7 +112,7 @@ if __name__ == "__main__":
         reps_paths_dict = json.load(f)
 
     # flatten the path dictionary in a more orderly way
-    rep_file_list = []
+    rep_file_list = {}
     for backbone_type in BACKBONE_TYPES:
         print(f"Processing backbone type: {backbone_type}")
         if backbone_type == 'classical':
@@ -124,8 +124,20 @@ if __name__ == "__main__":
         print(layer_keys)
         for layer_key in layer_keys:
             reps_paths_dict[backbone_type][layer_key].sort()
-            rep_file_list.extend(reps_paths_dict[backbone_type][layer_key])
-    print(rep_file_list)
-    sim_scores = {}
+            # extract the seed number
+            for file_path in reps_paths_dict[backbone_type][layer_key]:
+                if backbone_type == 'classical':
+                    # classical has the file name format:
+                    # collected_reps/Pong1PCReps_<64P or 4096P>_seed_<seed>.npy
+                    seed_num = file_path.split('_seed_')[-1].split('.npy')[0]
+                else:
+                    # quantum has the file name format:
+                    # collected_reps/Pong1PQFMXObsReps_<agent_type>_layers_<num_layers>_seed_<seed>.npy
+                    seed_num = file_path.split('_seed_')[-1].split('.npy')[0]
+                
+                rep_file_list[f"{backbone_type}_{layer_key}_seed_{seed_num}"] = file_path
+
+
+    
     
     
