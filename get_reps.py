@@ -65,7 +65,7 @@ for model_file in classical_model_files:
             print(f"Model loaded successfully.")
             with torch.no_grad():
                 # get representations
-                reps = agent.get_representation(observations)
+                reps = agent.get_representations(observations)
                 print(f"Generated representations with shape: {reps.shape}")
                 # save representations
                 reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_64P_seed_{match.group(2)}.npy")
@@ -80,7 +80,7 @@ for model_file in classical_model_files:
             print(f"Model loaded successfully.")
             with torch.no_grad():
                 # get representations
-                reps = agent.get_representation(observations)
+                reps = agent.get_representations(observations)
                 print(f"Generated representations with shape: {reps.shape}")
                 # save representations
                 reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_4096P_seed_{match.group(2)}.npy")
