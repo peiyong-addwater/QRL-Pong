@@ -148,6 +148,7 @@ if __name__ == "__main__":
         for rep_name2, path2 in rep_file_list.items():
             # avoid repetition
             if rep_name1 != rep_name2:
+                print(f"Calculating CKA between {rep_name1} and {rep_name2}")
                 reps2 = np.load(path2)
                 cka_value = linear_cka(reps1, reps2)
                 cka_results[rep_name1][rep_name2] = cka_value
