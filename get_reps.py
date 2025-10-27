@@ -53,6 +53,7 @@ for model_file in model_files:
     if match:
         agent_type = match.group(1)
         num_layers = int(re.search(r'_QLayers_(\d+)', model_file).group(1))
+        seed = int(re.search(r'___seed_(\d+)_', model_file).group(1))
         
         if num_layers not in reps_paths_dict[agent_type].keys():
             reps_paths_dict[agent_type][num_layers] = []
@@ -69,10 +70,11 @@ for model_file in model_files:
             reps = agent.get_representation(observations)
             print(f"Generated representations with shape: {reps.shape}")
             # save representations
-            reps_path = os.path.join(REPS_FOLDER, f"{agent_type}_layers_{num_layers}.npy")
+            reps_path = os.path.join(REPS_FOLDER, f"Pong1PQFMXObsReps_{agent_type}_layers_{num_layers}_seed_{seed}.npy")
             np.save(reps_path, reps.cpu().numpy())
             print(f"Saved representations to {reps_path}")
             reps_paths_dict[agent_type][num_layers].append(reps_path)
+            print("---------------------------------------------------")
 
 # save the paths to the representations in a json file at the root of the project
 with open("reps_paths_dict.json", "w") as f:
