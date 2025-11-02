@@ -13,7 +13,7 @@ def plot_heatmap(csv_path, output_path):
 
     # Create a heatmap using seaborn
     # note: the csv has a huge number of rows/columns, so we set a large figure size
-    plt.figure(figsize=(30, 24), dpi=600)
+    plt.figure(figsize=(60, 48), dpi=600)
     # no annotation to avoid clutter
     sns.heatmap(data, annot=False, cmap="viridis")
 
