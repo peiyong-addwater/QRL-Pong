@@ -64,3 +64,31 @@ PLOT_TAGS = [
     '1-Training-Losses/approx_kl'
 ]
 
+def select_step_value(df, tag):
+    """
+    Return the paris of (step, value) for the given tag from the dataframe.
+    """
+    df_tag = df[df['tag'] == tag]
+    return df_tag[['step', 'value']]
+
+# test with one csv file
+sample_df = pd.read_csv(CSV_FILES[0])
+print("Sample CSV data:")
+print(sample_df.head())
+# print unique tags
+print("Unique tags in sample CSV:")
+print(sample_df['tag'].unique())
+# select sample for episodic_return
+sample_data = select_step_value(sample_df, '0-Episodic-Stats/episodic_return')
+print("Sample episodic_return data:")
+print(sample_data.head())
+# plot sample data
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=sample_data, x='step', y='value')
+plt.title('Sample Episodic Return over Steps')
+plt.xlabel('Step')
+plt.ylabel('Episodic Return')
+plt.grid()
+# save as test plot
+plt.savefig(PLOTS_FOLDER / 'sample_episodic_return.png')
+plt.close()
