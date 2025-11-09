@@ -2,8 +2,16 @@
 import os
 from pathlib import Path
 import pandas as pd
+import numpy as np
+from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scienceplots
+
+plt.style.use(['science','nature'])
+
+# For data processing
+UNIFORM_STEPS = np.linspace(0, 1e7, 2000)
 
 # file paths
 STAT_FOLDER = Path('runs_scalars_csv')
@@ -64,12 +72,41 @@ PLOT_TAGS = [
     '1-Training-Losses/approx_kl'
 ]
 
+TAGS_AND_LABELS_TITLES = {
+    '0-Episodic-Stats/episodic_return': 'Episodic Return',
+    '0-Episodic-Stats/episodic_length': 'Episodic Length',
+    '1-Training-Losses/policy_loss': 'Policy Loss',
+    '1-Training-Losses/value_loss': 'Value Loss',
+    '1-Training-Losses/explained_variance': 'Explained Variance',
+    '1-Training-Losses/entropy': 'Entropy',
+    '1-Training-Losses/clipfrac': 'Clip Fraction',
+    '1-Training-Losses/approx_kl': 'Approx. KL Divergence'
+}
+
 def select_step_value(df, tag):
     """
     Return the paris of (step, value) for the given tag from the dataframe.
     """
     df_tag = df[df['tag'] == tag]
     return df_tag[['step', 'value']]
+
+def time_series_exponential_moving_average(df, span):
+    """
+    Apply exponential moving average smoothing to the 'value' column of the dataframe.
+    """
+    df_smoothed = df.copy()
+    df_smoothed['value'] = df_smoothed['value'].ewm(span=span, adjust=False).mean()
+    return df_smoothed
+
+def smooth_and_resample(df, span=50):
+    """
+    Smooth the time series data using EMA and resample to uniform steps.
+    """
+    df_smoothed = time_series_exponential_moving_average(df, span=span)
+    interp_func = interp1d(df_smoothed['step'], df_smoothed['value'], kind='linear', fill_value="extrapolate")
+    resampled_values = interp_func(UNIFORM_STEPS)
+    df_resampled = pd.DataFrame({'step': UNIFORM_STEPS, 'value': resampled_values})
+    return df_resampled
 
 # test with one csv file
 sample_df = pd.read_csv(CSV_FILES[0])
@@ -83,12 +120,16 @@ sample_data = select_step_value(sample_df, '0-Episodic-Stats/episodic_return')
 print("Sample episodic_return data:")
 print(sample_data.head())
 # plot sample data
-plt.figure(figsize=(10, 6))
-sns.lineplot(data=sample_data, x='step', y='value')
-plt.title('Sample Episodic Return over Steps')
+plt.figure(figsize=(5, 3))
+# original data as a very light line
+sns.lineplot(data=sample_data, x='step', y='value', alpha=0.3)
+# plot the EMA
+smoothed_data = smooth_and_resample(sample_data, span=50)
+sns.lineplot(data=smoothed_data, x='step', y='value', label='EMA (span=50, Smoothed and Resampled)', color='red')
+plt.title('Episodic Return Over Training Steps')
 plt.xlabel('Step')
 plt.ylabel('Episodic Return')
 plt.grid()
 # save as test plot
-plt.savefig(PLOTS_FOLDER / 'sample_episodic_return.png')
+plt.savefig(PLOTS_FOLDER / 'sample_plot.png', dpi=300)
 plt.close()
