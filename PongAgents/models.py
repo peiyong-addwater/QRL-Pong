@@ -175,9 +175,10 @@ if __name__ == "__main__":
     test_count = 0
     while True:
         action, log_prob, entropy, value = agent.get_action_and_value(torch.tensor(obs))
+        print("Shape of the action:", action.shape)
         obs, reward, terminated, truncated, info = vecenv.step(action.numpy())
         print("Observation shape:", obs.shape)
-        print("Action shape:", action.shape)
+        print("Action shape:", action.shape) # continusous action is a single float
         time.sleep(1)
         test_count += 1
         if test_count > 10:
