@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import PchipInterpolator, Akima1DInterpolator
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scienceplots
@@ -115,7 +115,7 @@ def smooth_and_resample(df, span=50):
     Smooth the time series data using EMA and resample to uniform steps.
     """
     df_smoothed = time_series_exponential_moving_average(df, span=span)
-    interp_func = interp1d(df_smoothed['step'], df_smoothed['value'], kind='linear', fill_value="extrapolate")
+    interp_func = Akima1DInterpolator(df_smoothed['step'], df_smoothed['value'], extrapolate=None)
     resampled_values = interp_func(UNIFORM_STEPS)
     df_resampled = pd.DataFrame({'step': UNIFORM_STEPS, 'value': resampled_values})
     return df_resampled
@@ -130,7 +130,24 @@ def mean_across_runs(dfs, span=50):
     df_mean = pd.DataFrame({'step': UNIFORM_STEPS, 'value': mean_values})
     return df_mean
 
+def std_across_runs(dfs, span=50):
+    """
+    Given a list of dataframes (each for a run), smooth and resample them,
+    then compute the standard deviation across runs.
+    """
+    resampled_dfs = [smooth_and_resample(df, span=span) for df in dfs]
+    std_values = np.std([df['value'].values for df in resampled_dfs], axis=0)
+    df_std = pd.DataFrame({'step': UNIFORM_STEPS, 'value': std_values})
+    return df_std
+
 if __name__ == "__main__":
+    # Color palette
+    # Classical baseline: Gray-dashed
+    # Quantum models: Different prime colors for different type of models
+    # Different minor colors for different number of layers
+    CLASSICAL_COLOR = 'gray'
+    SHADE_ALPHA = 0.1
+
     # 1. Compare quantum models w.r.t. classical baseline with 64 parameters
     # 1.1 Separable quantum model vs classical baseline, episodic return
     fig = plt.figure(figsize=FIG_SIZE)
@@ -141,11 +158,15 @@ if __name__ == "__main__":
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
         plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
+        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA,)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Separable vs Classical Baseline (64 Params)')
@@ -163,11 +184,15 @@ if __name__ == "__main__":
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
         plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
+        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Entangled vs Classical Baseline (64 Params)')
@@ -185,11 +210,15 @@ if __name__ == "__main__":
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
         plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
+        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
+    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Entangled Trainable RZZ vs Classical Baseline (64 Params)')
@@ -207,22 +236,28 @@ if __name__ == "__main__":
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
             plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
+            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
         # Entangled model
         files = res_groups['quantum_entangled'].get(n_layers, [])
         if files:
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
             plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
+            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
         # Entangled trainable rzz model
         files = res_groups['quantum_entangled_trainable_rzz'].get(n_layers, [])
         if files:
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
             plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
+            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
         plt.xlabel('Training Steps')
         plt.ylabel('Averaged Episodic Return')
-        plt.title(f'Episodic Return Comparison for {n_layers} Q-Layers')
         plt.legend()
+        plt.title(f'Episodic Return Comparison for {n_layers} Q-Layers')
         plt.grid(True)
         plt.savefig(PLOTS_FOLDER / f'episodic_return_quantum_only_comparison_{n_layers}_layers.png', dpi=FIG_DPI)
         plt.close()
