@@ -12,6 +12,11 @@ plt.style.use(['science','nature'])
 
 # For data processing
 UNIFORM_STEPS = np.linspace(0, 1e7, 2000)
+EMA_SPAN = 100  # Span for exponential moving average smoothing
+
+# Figure save dpi and size
+FIG_DPI = 300
+FIG_SIZE = (8, 5)
 
 # file paths
 STAT_FOLDER = Path('runs_scalars_csv')
@@ -83,6 +88,13 @@ TAGS_AND_LABELS_TITLES = {
     '1-Training-Losses/approx_kl': 'Approx. KL Divergence'
 }
 
+def load_csv_as_df(csv_file):
+    """
+    Load the given csv file into a pandas dataframe.
+    """
+    df = pd.read_csv(csv_file)
+    return df
+
 def select_step_value(df, tag):
     """
     Return the paris of (step, value) for the given tag from the dataframe.
@@ -108,28 +120,80 @@ def smooth_and_resample(df, span=50):
     df_resampled = pd.DataFrame({'step': UNIFORM_STEPS, 'value': resampled_values})
     return df_resampled
 
-# test with one csv file
-sample_df = pd.read_csv(CSV_FILES[0])
-print("Sample CSV data:")
-print(sample_df.head())
-# print unique tags
-print("Unique tags in sample CSV:")
-print(sample_df['tag'].unique())
-# select sample for episodic_return
-sample_data = select_step_value(sample_df, '0-Episodic-Stats/episodic_return')
-print("Sample episodic_return data:")
-print(sample_data.head())
-# plot sample data
-plt.figure(figsize=(5, 3))
-# original data as a very light line
-sns.lineplot(data=sample_data, x='step', y='value', alpha=0.3)
-# plot the EMA
-smoothed_data = smooth_and_resample(sample_data, span=50)
-sns.lineplot(data=smoothed_data, x='step', y='value', label='EMA (span=50, Smoothed and Resampled)', color='red')
-plt.title('Episodic Return Over Training Steps')
-plt.xlabel('Step')
-plt.ylabel('Episodic Return')
-plt.grid()
-# save as test plot
-plt.savefig(PLOTS_FOLDER / 'sample_plot.png', dpi=300)
-plt.close()
+def mean_across_runs(dfs, span=50):
+    """
+    Given a list of dataframes (each for a run), smooth and resample them,
+    then compute the mean across runs.
+    """
+    resampled_dfs = [smooth_and_resample(df, span=span) for df in dfs]
+    mean_values = np.mean([df['value'].values for df in resampled_dfs], axis=0)
+    df_mean = pd.DataFrame({'step': UNIFORM_STEPS, 'value': mean_values})
+    return df_mean
+
+if __name__ == "__main__":
+    # 1. Compare quantum models w.r.t. classical baseline with 64 parameters
+    # 1.1 Separable quantum model vs classical baseline, episodic return
+    fig = plt.figure(figsize=FIG_SIZE)
+    dfs = res_groups['quantum_separable']
+    # sort layers by integer value
+    dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
+    for n_layers, files in dfs.items():
+        run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+        df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
+    # Classical baseline with 64 parameters
+    files = res_groups['classical_64']
+    run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+    df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    plt.xlabel('Training Steps')
+    plt.ylabel('Averaged Episodic Return')
+    plt.title('Episodic Return: Quantum Separable vs Classical Baseline (64 Params)')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(PLOTS_FOLDER / 'episodic_return_quantum_separable_vs_classical_64.png', dpi=FIG_DPI)
+    plt.close()
+
+    # 1.2 Entangled quantum model vs classical baseline, episodic return
+    fig = plt.figure(figsize=FIG_SIZE)
+    dfs = res_groups['quantum_entangled']
+    # sort layers by integer value
+    dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
+    for n_layers, files in dfs.items():
+        run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+        df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
+    # Classical baseline with 64 parameters
+    files = res_groups['classical_64']
+    run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+    df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    plt.xlabel('Training Steps')
+    plt.ylabel('Averaged Episodic Return')
+    plt.title('Episodic Return: Quantum Entangled vs Classical Baseline (64 Params)')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(PLOTS_FOLDER / 'episodic_return_quantum_entangled_vs_classical_64.png', dpi=FIG_DPI)
+    plt.close()
+
+    # 1.3 Entangled trainable rzz quantum model vs classical baseline, episodic return
+    fig = plt.figure(figsize=FIG_SIZE)
+    dfs = res_groups['quantum_entangled_trainable_rzz']
+    # sort layers by integer value
+    dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
+    for n_layers, files in dfs.items():
+        run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+        df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
+    # Classical baseline with 64 parameters
+    files = res_groups['classical_64']
+    run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+    df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--')
+    plt.xlabel('Training Steps')
+    plt.ylabel('Averaged Episodic Return')
+    plt.title('Episodic Return: Quantum Entangled Trainable RZZ vs Classical Baseline (64 Params)')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(PLOTS_FOLDER / 'episodic_return_quantum_entangled_trainable_rzz_vs_classical_64.png', dpi=FIG_DPI)
+    plt.close()
