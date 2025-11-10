@@ -197,3 +197,32 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.savefig(PLOTS_FOLDER / 'episodic_return_quantum_entangled_trainable_rzz_vs_classical_64.png', dpi=FIG_DPI)
     plt.close()
+
+    # 2. Compare entangled quantum models (two types) w.r.t. separable models for each number of layers
+    for n_layers in dfs.keys():
+        fig = plt.figure(figsize=FIG_SIZE)
+        # Separable model
+        files = res_groups['quantum_separable'].get(n_layers, [])
+        if files:
+            run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+            df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
+        # Entangled model
+        files = res_groups['quantum_entangled'].get(n_layers, [])
+        if files:
+            run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+            df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
+        # Entangled trainable rzz model
+        files = res_groups['quantum_entangled_trainable_rzz'].get(n_layers, [])
+        if files:
+            run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
+            df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
+        plt.xlabel('Training Steps')
+        plt.ylabel('Averaged Episodic Return')
+        plt.title(f'Episodic Return Comparison for {n_layers} Q-Layers')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(PLOTS_FOLDER / f'episodic_return_quantum_only_comparison_{n_layers}_layers.png', dpi=FIG_DPI)
+        plt.close()
