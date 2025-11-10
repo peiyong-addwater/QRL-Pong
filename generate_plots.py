@@ -130,23 +130,36 @@ def mean_across_runs(dfs, span=50):
     df_mean = pd.DataFrame({'step': UNIFORM_STEPS, 'value': mean_values})
     return df_mean
 
-def std_across_runs(dfs, span=50):
+def minmax_across_runs(dfs, span=50):
     """
     Given a list of dataframes (each for a run), smooth and resample them,
-    then compute the standard deviation across runs.
+    then compute the min and max across runs.
     """
     resampled_dfs = [smooth_and_resample(df, span=span) for df in dfs]
-    std_values = np.std([df['value'].values for df in resampled_dfs], axis=0)
-    df_std = pd.DataFrame({'step': UNIFORM_STEPS, 'value': std_values})
-    return df_std
+    min_values = np.min([df['value'].values for df in resampled_dfs], axis=0)
+    max_values = np.max([df['value'].values for df in resampled_dfs], axis=0)
+    df_minmax = pd.DataFrame({'step': UNIFORM_STEPS, 'min': min_values, 'max': max_values})
+    return df_minmax
 
 if __name__ == "__main__":
     # Color palette
-    # Classical baseline: Gray-dashed
-    # Quantum models: Different prime colors for different type of models
-    # Different minor colors for different number of layers
-    CLASSICAL_COLOR = 'gray'
+    # Classical baseline: Black-dashed
+    CLASSICAL_COLOR = 'black'
+    SEPARABLE_COLOR = sns.color_palette(["#F94144", "#F3722C", "#F8961E", "#F9844A", "#E76F51", "#D62828"])
+    ENTANGLED_COLOR = sns.color_palette(["#84CC16", "#16A34A", "#059669", "#0EA5A8", "#2DD4BF", "#065F46"])
+    ENTANGLED_TRAINABLE_RZZ_COLOR = sns.color_palette(["#3A86FF", "#0077B6", "#00B4D8", "#4361EE", "#4C1D95", "#7B2CBF"])
     SHADE_ALPHA = 0.1
+    # line markers
+    # layer markers
+    LAYER_MARKERS = ['o', 's', 'D', '^', 'v', '+']
+    # model markers
+    MODEL_MARKERS = {
+        'quantum_separable': 'o',
+        'quantum_entangled': 's',
+        'quantum_entangled_trainable_rzz': 'D',
+        'classical_64': 'X',
+        'classical_4096': 'P'
+    }
 
     # 1. Compare quantum models w.r.t. classical baseline with 64 parameters
     # 1.1 Separable quantum model vs classical baseline, episodic return
@@ -154,19 +167,19 @@ if __name__ == "__main__":
     dfs = res_groups['quantum_separable']
     # sort layers by integer value
     dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
-    for n_layers, files in dfs.items():
+    for idx, (n_layers, files) in enumerate(dfs.items()):
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
-        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA,)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers', color=SEPARABLE_COLOR[idx], marker = LAYER_MARKERS[idx], markevery=0.1)
+        df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SEPARABLE_COLOR[idx])
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
+    df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR, marker=MODEL_MARKERS['classical_64'], markevery=0.1)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Separable vs Classical Baseline (64 Params)')
@@ -180,19 +193,19 @@ if __name__ == "__main__":
     dfs = res_groups['quantum_entangled']
     # sort layers by integer value
     dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
-    for n_layers, files in dfs.items():
+    for idx, (n_layers, files) in enumerate(dfs.items()):
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
-        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers', color=ENTANGLED_COLOR[idx], marker = LAYER_MARKERS[idx], markevery=0.1)
+        df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=ENTANGLED_COLOR[idx])
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
+    df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR, marker=MODEL_MARKERS['classical_64'], markevery=0.1)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Entangled vs Classical Baseline (64 Params)')
@@ -206,19 +219,19 @@ if __name__ == "__main__":
     dfs = res_groups['quantum_entangled_trainable_rzz']
     # sort layers by integer value
     dfs = dict(sorted(dfs.items(), key=lambda item: int(item[0])))
-    for n_layers, files in dfs.items():
+    for idx, (n_layers, files) in enumerate(dfs.items()):
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
-        df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-        plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers', color=ENTANGLED_TRAINABLE_RZZ_COLOR[idx], marker = LAYER_MARKERS[idx], markevery=0.1)
+        df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+        plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=ENTANGLED_TRAINABLE_RZZ_COLOR[idx])
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
     df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR)
-    df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-    plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
+    plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR, marker=MODEL_MARKERS['classical_64'], markevery=0.1)
+    df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+    plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     plt.title('Episodic Return: Quantum Entangled Trainable RZZ vs Classical Baseline (64 Params)')
@@ -229,31 +242,32 @@ if __name__ == "__main__":
 
     # 2. Compare entangled quantum models (two types) w.r.t. separable models for each number of layers
     for n_layers in dfs.keys():
+        idx = int(n_layers) - 1  # zero-based index
         fig = plt.figure(figsize=FIG_SIZE)
         # Separable model
         files = res_groups['quantum_separable'].get(n_layers, [])
         if files:
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers')
-            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Separable; {n_layers} Q-Layers', color=SEPARABLE_COLOR[idx], marker=MODEL_MARKERS['quantum_separable'], markevery=0.1)
+            df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SEPARABLE_COLOR[idx])
         # Entangled model
         files = res_groups['quantum_entangled'].get(n_layers, [])
         if files:
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers')
-            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers', color=ENTANGLED_COLOR[idx], marker=MODEL_MARKERS['quantum_entangled'], markevery=0.1)
+            df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=ENTANGLED_COLOR[idx])
         # Entangled trainable rzz model
         files = res_groups['quantum_entangled_trainable_rzz'].get(n_layers, [])
         if files:
             run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
             df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers')
-            df_std = std_across_runs(run_dfs, span=EMA_SPAN)
-            plt.fill_between(df_std['step'], df_mean['value'] - df_std['value'], df_mean['value'] + df_std['value'], alpha=SHADE_ALPHA)
+            plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled Trainable RZZ; {n_layers} Q-Layers', color=ENTANGLED_TRAINABLE_RZZ_COLOR[idx], marker=MODEL_MARKERS['quantum_entangled_trainable_rzz'], markevery=0.1)
+            df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
+            plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=ENTANGLED_TRAINABLE_RZZ_COLOR[idx])
         plt.xlabel('Training Steps')
         plt.ylabel('Averaged Episodic Return')
         plt.legend()
