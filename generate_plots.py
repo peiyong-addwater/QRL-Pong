@@ -158,6 +158,8 @@ if __name__ == "__main__":
         'classical_64': 'X',
         'classical_4096': 'P'
     }
+    # Whether to smooth individual runs when plotting (for shading)
+    SMOOTH_INDIVIDUAL_RUNS = True
 
     # 1. Compare quantum models w.r.t. classical baseline with 64 parameters
     # 1.1 Separable quantum model vs classical baseline, episodic return
@@ -173,8 +175,11 @@ if __name__ == "__main__":
         # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[idx])
         # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
         for run_df in run_dfs:
-            df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-            plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
+            if SMOOTH_INDIVIDUAL_RUNS:
+                df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
+            else:
+                plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
@@ -184,8 +189,11 @@ if __name__ == "__main__":
     plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR, marker=MODEL_MARKERS['classical_64'], markevery=0.1)
     # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
     for run_df in run_dfs:
-        df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-        plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
+        if SMOOTH_INDIVIDUAL_RUNS:
+            df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+            plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
+        else:
+            plt.plot(run_df['step'], run_df['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     # plt.title('Episodic Return: Quantum Separable vs Classical Baseline (64 Params)')
@@ -207,8 +215,11 @@ if __name__ == "__main__":
         # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[idx])
         # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
         for run_df in run_dfs:
-            df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-            plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
+            if SMOOTH_INDIVIDUAL_RUNS:
+                df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
+            else:
+                plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
@@ -218,8 +229,11 @@ if __name__ == "__main__":
     plt.plot(df_mean['step'], df_mean['value'], label='Classical Baseline 64 Params', linestyle='--', color=CLASSICAL_COLOR, marker=MODEL_MARKERS['classical_64'], markevery=0.1)
     # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
     for run_df in run_dfs:
-        df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-        plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
+        if SMOOTH_INDIVIDUAL_RUNS:
+            df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+            plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
+        else:
+            plt.plot(run_df['step'], run_df['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     # plt.title('Episodic Return: Quantum Entangled vs Classical Baseline (64 Params)')
@@ -241,8 +255,11 @@ if __name__ == "__main__":
         # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[idx])
         # instead of fill between min and max, plot all runs with low alpha and same color, but without labels or markers, for better visualization
         for run_df in run_dfs:
-            df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-            plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=0.05)
+            if SMOOTH_INDIVIDUAL_RUNS:
+                df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=SHADE_ALPHA)
+            else:
+                plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[idx], alpha=0.05)
     # Classical baseline with 64 parameters
     files = res_groups['classical_64']
     run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
@@ -252,8 +269,11 @@ if __name__ == "__main__":
     # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=CLASSICAL_COLOR)
     # instead of fill between min and max, plot all runs with low alpha and same color, but without labels or markers, for better visualization
     for run_df in run_dfs:
-        df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-        plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=0.05)
+        if SMOOTH_INDIVIDUAL_RUNS:
+            df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+            plt.plot(df_smoothed['step'], df_smoothed['value'], color=CLASSICAL_COLOR, alpha=SHADE_ALPHA)
+        else:
+            plt.plot(run_df['step'], run_df['value'], color=CLASSICAL_COLOR, alpha=0.05)
     plt.xlabel('Training Steps')
     plt.ylabel('Averaged Episodic Return')
     # plt.title('Episodic Return: Quantum Entangled Trainable RZZ vs Classical Baseline (64 Params)')
@@ -276,8 +296,11 @@ if __name__ == "__main__":
             # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[0])
             # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
             for run_df in run_dfs:
-                df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[0], alpha=SHADE_ALPHA)
+                if SMOOTH_INDIVIDUAL_RUNS:
+                    df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                    plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[0], alpha=SHADE_ALPHA)
+                else:
+                    plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[0], alpha=0.05)
         # Entangled model
         files = res_groups['quantum_entangled'].get(n_layers, [])
         if files:
@@ -288,8 +311,11 @@ if __name__ == "__main__":
             # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[2])
             # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
             for run_df in run_dfs:
-                df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[2], alpha=SHADE_ALPHA)
+                if SMOOTH_INDIVIDUAL_RUNS:
+                    df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                    plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[2], alpha=SHADE_ALPHA)
+                else:
+                    plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[2], alpha=0.05)
         # Entangled trainable rzz model
         files = res_groups['quantum_entangled_trainable_rzz'].get(n_layers, [])
         if files:
@@ -300,8 +326,11 @@ if __name__ == "__main__":
             # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[4])
             # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
             for run_df in run_dfs:
-                df_smoothed = smooth_and_resample(run_df, span=EMA_SPAN)
-                plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[4], alpha=SHADE_ALPHA)
+                if SMOOTH_INDIVIDUAL_RUNS:
+                    df_smoothed = time_series_exponential_moving_average(run_df, span=EMA_SPAN)
+                    plt.plot(df_smoothed['step'], df_smoothed['value'], color=SIX_DIFFERNT_COLORS[4], alpha=SHADE_ALPHA)
+                else:
+                    plt.plot(run_df['step'], run_df['value'], color=SIX_DIFFERNT_COLORS[4], alpha=0.05)
         plt.xlabel('Training Steps')
         plt.ylabel('Averaged Episodic Return')
         plt.legend()
