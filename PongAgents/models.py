@@ -189,6 +189,41 @@ class PongClassicalAgent256PBackbone(nn.Module):
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
 
+class PongClassicalAgent336PBackbone(nn.Module):
+    """
+    A classical agent with a classical critic.
+    """
+    def __init__(self, env):
+        super().__init__()
+        self.single_action_dim = env.single_action_space.n
+        self.observation_dim = env.single_observation_space.shape[0]
+        self.backbone = nn.Sequential(
+            nn.Linear(self.observation_dim, 21),
+            nn.ReLU(),
+            nn.Linear(21, 8)  # Output dimension for the critic
+        )
+        self.actor = PongClassicalPolicy(
+            input_dim=8,
+            output_dim=self.single_action_dim
+        )
+        self.critic = PongClassicalCritic(input_dim=8)
+
+    def get_representations(self, x):
+        hidden = self.backbone(x)
+        return hidden
+
+    def get_value(self, x):
+        hidden = self.get_representations(x)
+        return self.critic(hidden)
+
+    def get_action_and_value(self, x, action=None):
+        hidden = self.get_representations(x)
+        logits = self.actor(hidden)
+        probs = Categorical(logits=logits)
+        if action is None:
+            action = probs.sample()
+        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+
 class PongClassicalAgent4096PBackbone(nn.Module):
     """
     A classical agent with a classical critic.
