@@ -210,7 +210,7 @@ if __name__ == "__main__":
     for idx, (n_layers, files) in enumerate(dfs.items()):
         run_dfs = [select_step_value(load_csv_as_df(f), '0-Episodic-Stats/episodic_return') for f in files]
         df_mean = mean_across_runs(run_dfs, span=EMA_SPAN)
-        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum Entangled; {n_layers} Q-Layers', color=SIX_DIFFERNT_COLORS[idx], marker = LAYER_MARKERS[idx], markevery=0.1)
+        plt.plot(df_mean['step'], df_mean['value'], label=f'Quantum CZ Entangled; {n_layers} Q-Layers', color=SIX_DIFFERNT_COLORS[idx], marker = LAYER_MARKERS[idx], markevery=0.1)
         # df_minmax = minmax_across_runs(run_dfs, span=EMA_SPAN)
         # plt.fill_between(df_minmax['step'], df_minmax['min'], df_minmax['max'], alpha=SHADE_ALPHA, color=SIX_DIFFERNT_COLORS[idx])
         # instead of fill between min and max, plot all runs with low alpha and same color, for better visualization
