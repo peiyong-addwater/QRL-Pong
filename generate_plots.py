@@ -42,7 +42,7 @@ EMA_SPAN = 100  # Span for exponential moving average smoothing
 
 # Figure save dpi and size
 FIG_DPI = 300
-FIG_SIZE = (10, 6)
+FIG_SIZE = (6, 4)
 
 # file paths
 STAT_FOLDER = Path('runs_scalars_csv')
