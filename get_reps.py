@@ -55,7 +55,7 @@ for model_file in classical_model_files:
     # filename has the format:
     # Pong1PCB2L<64P or 4096P>__seed_<seed>_<timestamp>.pth
     # extract the seed from the file name
-    match = re.search(r'Pong1PCB2L(64P|4096P)__seed_(\d+)_', model_file)
+    match = re.search(r'Pong1PCB2L(64P|128P|256P|336P|4096P)__seed_(\d+)_', model_file)
     if match:
         print(f"======File Count: {file_count+1}/{len(classical_model_files)} Processing Classical model: {model_file}======")
         if "64P" in model_file:
