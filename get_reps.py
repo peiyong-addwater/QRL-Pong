@@ -7,7 +7,7 @@ import json
 from pufferlib import vector
 from pufferlib.ocean import env_creator
 
-from PongAgents import PongHybridAgent, PongClassicalAgent4096PBackbone, PongClassicalAgent64PBackbone
+from PongAgents import PongHybridAgent, PongClassicalAgent4096PBackbone, PongClassicalAgent64PBackbone, PongClassicalAgent128PBackbone, PongClassicalAgent256PBackbone, PongClassicalAgent336PBackbone
 
 # device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -87,6 +87,51 @@ for model_file in classical_model_files:
                 np.save(reps_path, reps.cpu().numpy())
                 print(f"Saved representations to {reps_path}")
                 reps_paths_dict["classical"]["4096P"].append(reps_path)
+                print("---------------------------------------------------")
+        elif "128P" in model_file:
+            agent = PongClassicalAgent128PBackbone(env=envs).to(device)
+            print("Loading 128P Classical Backbone model")
+            agent.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"Model loaded successfully.")
+            with torch.no_grad():
+                # get representations
+                reps = agent.get_representations(observations)
+                print(f"Generated representations with shape: {reps.shape}")
+                # save representations
+                reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_128P_seed_{match.group(2)}.npy")
+                np.save(reps_path, reps.cpu().numpy())
+                print(f"Saved representations to {reps_path}")
+                reps_paths_dict["classical"]["128P"].append(reps_path)
+                print("---------------------------------------------------")
+        elif "256P" in model_file:
+            agent = PongClassicalAgent256PBackbone(env=envs).to(device)
+            print("Loading 256P Classical Backbone model")
+            agent.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"Model loaded successfully.")
+            with torch.no_grad():
+                # get representations
+                reps = agent.get_representations(observations)
+                print(f"Generated representations with shape: {reps.shape}")
+                # save representations
+                reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_256P_seed_{match.group(2)}.npy")
+                np.save(reps_path, reps.cpu().numpy())
+                print(f"Saved representations to {reps_path}")
+                reps_paths_dict["classical"]["256P"].append(reps_path)
+                print("---------------------------------------------------")
+        elif "336P" in model_file:
+            agent = PongClassicalAgent336PBackbone(env=envs).to(device)
+            print("Loading 336P Classical Backbone model")
+            agent.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"Model loaded successfully.")
+            with torch.no_grad():
+                # get representations
+                reps = agent.get_representations(observations)
+                print(f"Generated representations with shape: {reps.shape}")
+                # save representations
+                reps_path = os.path.join(REPS_FOLDER, f"Pong1PCReps_336P_seed_{match.group(2)}.npy")
+                np.save(reps_path, reps.cpu().numpy())
+                print(f"Saved representations to {reps_path}")
+                reps_paths_dict["classical"]["336P"].append(reps_path)
                 print("---------------------------------------------------")
         print()
     file_count += 1
