@@ -45,6 +45,9 @@ reps_paths_dict["entangled_trainable_rzz"] = {}
 reps_paths_dict["classical"] = {}
 reps_paths_dict["classical"]["64P"] = []
 reps_paths_dict["classical"]["4096P"] = []
+reps_paths_dict["classical"]["128P"] = []
+reps_paths_dict["classical"]["256P"] = []
+reps_paths_dict["classical"]["336P"] = []
 
 # generate representations for each classical model
 file_count = 0
