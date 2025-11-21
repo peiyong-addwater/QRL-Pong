@@ -245,6 +245,42 @@
             "collected_reps/Pong1PCReps_4096P_seed_3.npy",
             "collected_reps/Pong1PCReps_4096P_seed_7.npy",
             "collected_reps/Pong1PCReps_4096P_seed_9.npy"
+        ],
+        "128P": [
+            "collected_reps/Pong1PCReps_128P_seed_0.npy",
+            "collected_reps/Pong1PCReps_128P_seed_4.npy",
+            "collected_reps/Pong1PCReps_128P_seed_7.npy",
+            "collected_reps/Pong1PCReps_128P_seed_5.npy",
+            "collected_reps/Pong1PCReps_128P_seed_3.npy",
+            "collected_reps/Pong1PCReps_128P_seed_1.npy",
+            "collected_reps/Pong1PCReps_128P_seed_6.npy",
+            "collected_reps/Pong1PCReps_128P_seed_9.npy",
+            "collected_reps/Pong1PCReps_128P_seed_8.npy",
+            "collected_reps/Pong1PCReps_128P_seed_2.npy"
+        ],
+        "256P": [
+            "collected_reps/Pong1PCReps_256P_seed_8.npy",
+            "collected_reps/Pong1PCReps_256P_seed_6.npy",
+            "collected_reps/Pong1PCReps_256P_seed_9.npy",
+            "collected_reps/Pong1PCReps_256P_seed_7.npy",
+            "collected_reps/Pong1PCReps_256P_seed_1.npy",
+            "collected_reps/Pong1PCReps_256P_seed_5.npy",
+            "collected_reps/Pong1PCReps_256P_seed_3.npy",
+            "collected_reps/Pong1PCReps_256P_seed_0.npy",
+            "collected_reps/Pong1PCReps_256P_seed_2.npy",
+            "collected_reps/Pong1PCReps_256P_seed_4.npy"
+        ],
+        "336P": [
+            "collected_reps/Pong1PCReps_336P_seed_8.npy",
+            "collected_reps/Pong1PCReps_336P_seed_7.npy",
+            "collected_reps/Pong1PCReps_336P_seed_0.npy",
+            "collected_reps/Pong1PCReps_336P_seed_3.npy",
+            "collected_reps/Pong1PCReps_336P_seed_9.npy",
+            "collected_reps/Pong1PCReps_336P_seed_4.npy",
+            "collected_reps/Pong1PCReps_336P_seed_1.npy",
+            "collected_reps/Pong1PCReps_336P_seed_2.npy",
+            "collected_reps/Pong1PCReps_336P_seed_5.npy",
+            "collected_reps/Pong1PCReps_336P_seed_6.npy"
         ]
     }
 }

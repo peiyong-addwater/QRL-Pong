@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 CSV_PATH = "cka_results.csv" # path to the csv file containing CKA results
-OUTPUT_PATH = "cka_heatmap.png" # path to save the heatmap image
+OUTPUT_PATH = "cka_heatmap.pdf" # path to save the heatmap image
 
 def plot_heatmap(csv_path, output_path):
     # Load the CSV data into a DataFrame
@@ -13,7 +13,7 @@ def plot_heatmap(csv_path, output_path):
 
     # Create a heatmap using seaborn
     # note: the csv has a huge number of rows/columns, so we set a large figure size
-    plt.figure(figsize=(60, 48), dpi=600)
+    plt.figure(figsize=(80, 70), dpi=600)
     # no annotation to avoid clutter
     sns.heatmap(data, annot=False, cmap="viridis")
 

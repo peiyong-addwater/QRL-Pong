@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # types of backbones used
     BACKBONE_TYPES = ['separable', 'entangled', 'entangled_trainable_rzz', 'classical']
-    CLASSICAL_BACKBONE_TYPES = ['64P', '4096P']
+    CLASSICAL_BACKBONE_TYPES = ['64P','128P', '256P', '336P', '4096P']
 
     with open(PATH_DICT_PATH, "r") as f:
         reps_paths_dict = json.load(f)
