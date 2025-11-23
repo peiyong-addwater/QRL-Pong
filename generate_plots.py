@@ -70,7 +70,7 @@ classical_label_and_titles = {
     'classical_128': 'Classical Baseline 128 Params',
     'classical_256': 'Classical Baseline 256 Params',
     'classical_336': 'Classical Baseline 336 Params',
-    # 'classical_4096': 'Classical Baseline 4096 Params',
+    'classical_4096': 'Classical Baseline 4096 Params',
 }
 quantum_label_and_titles = {
     'quantum_separable': 'Quantum Separable',
