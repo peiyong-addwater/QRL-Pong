@@ -100,7 +100,7 @@ def build_summary(
     grouped_returns: Dict[Tuple[str, int], List[float]],
     grouped_lengths: Dict[Tuple[str, int], List[float]],
 ) -> pd.DataFrame:
-    """Create a summary dataframe with mean and std across seeds for returns and lengths."""
+    """Create a summary dataframe with mean/std/min/max across seeds for returns and lengths."""
     records = []
     all_model_ids = set(grouped_returns.keys()) | set(grouped_lengths.keys())
     for (model_family, depth) in sorted(
@@ -115,9 +115,13 @@ def build_summary(
                 "runs_return": len(ret_vals),
                 "mean_final_return": float(np.mean(ret_vals)) if ret_vals else np.nan,
                 "std_final_return": float(np.std(ret_vals)) if ret_vals else np.nan,
-                "runs_length": len(len_vals),
-                "mean_final_length": float(np.mean(len_vals)) if len_vals else np.nan,
-                "std_final_length": float(np.std(len_vals)) if len_vals else np.nan,
+                "max_final_return": float(np.max(ret_vals)) if ret_vals else np.nan,
+                "min_final_return": float(np.min(ret_vals)) if ret_vals else np.nan,
+                #"runs_length": len(len_vals),
+                #"mean_final_length": float(np.mean(len_vals)) if len_vals else np.nan,
+                #"std_final_length": float(np.std(len_vals)) if len_vals else np.nan,
+                #"max_final_length": float(np.max(len_vals)) if len_vals else np.nan,
+                #"min_final_length": float(np.min(len_vals)) if len_vals else np.nan,
             }
         )
     return pd.DataFrame.from_records(records)
@@ -128,7 +132,16 @@ def print_summary(df: pd.DataFrame) -> None:
         print("No matching runs found.")
         return
     display = df.copy()
-    for col in ["mean_final_return", "std_final_return", "mean_final_length", "std_final_length"]:
+    for col in [
+        "mean_final_return",
+        "std_final_return",
+        "max_final_return",
+        "min_final_return",
+        #"mean_final_length",
+        #"std_final_length",
+        #"max_final_length",
+        #"min_final_length",
+    ]:
         display[col] = display[col].map(lambda v: f"{v:.2f}")
     print(display.to_string(index=False))
 
