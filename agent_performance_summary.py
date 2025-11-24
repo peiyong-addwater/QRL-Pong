@@ -118,10 +118,10 @@ def build_summary(
                 "max_final_return": float(np.max(ret_vals)) if ret_vals else np.nan,
                 "min_final_return": float(np.min(ret_vals)) if ret_vals else np.nan,
                 #"runs_length": len(len_vals),
-                #"mean_final_length": float(np.mean(len_vals)) if len_vals else np.nan,
-                #"std_final_length": float(np.std(len_vals)) if len_vals else np.nan,
-                #"max_final_length": float(np.max(len_vals)) if len_vals else np.nan,
-                #"min_final_length": float(np.min(len_vals)) if len_vals else np.nan,
+                "mean_final_length": float(np.mean(len_vals)) if len_vals else np.nan,
+                "std_final_length": float(np.std(len_vals)) if len_vals else np.nan,
+                "max_final_length": float(np.max(len_vals)) if len_vals else np.nan,
+                "min_final_length": float(np.min(len_vals)) if len_vals else np.nan,
             }
         )
     return pd.DataFrame.from_records(records)
@@ -137,10 +137,10 @@ def print_summary(df: pd.DataFrame) -> None:
         "std_final_return",
         "max_final_return",
         "min_final_return",
-        #"mean_final_length",
-        #"std_final_length",
-        #"max_final_length",
-        #"min_final_length",
+        "mean_final_length",
+        "std_final_length",
+        "max_final_length",
+        "min_final_length",
     ]:
         display[col] = display[col].map(lambda v: f"{v:.2f}")
     print(display.to_string(index=False))
