@@ -9,6 +9,14 @@ import seaborn as sns
 import scienceplots
 
 plt.style.use(['science','nature'])
+# set legnd font size globally
+plt.rcParams['legend.fontsize'] = 10
+# set axes label font size globally
+plt.rcParams['axes.labelsize'] = 12
+# set title font size globally
+plt.rcParams['axes.titlesize'] = 12
+# set the legend location globally: upper left
+plt.rcParams['legend.loc'] = 'upper left'
 
 # Plot settings
 # Whether to smooth individual runs when plotting (for shading)
