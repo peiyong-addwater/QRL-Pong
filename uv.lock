@@ -1295,6 +1295,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pynufft"
+version = "2025.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/62/ea/311a23e49eb0eb6533bd3fb261898ce97271bb5fa71638b7ac9f089003e9/pynufft-2025.2.1.tar.gz", hash = "sha256:c15279bac47a8d279e35859284595a53d58d96c9c110e047633be7bc1ae3e037", size = 16727394, upload-time = "2025-10-28T12:36:50.908Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/89/a2e5f2ba5ac0ea267e0882a41c56718654fd155c5ce7c66d9608b31f3b19/pynufft-2025.2.1-py3-none-any.whl", hash = "sha256:eac96acf9e8bcbcd4d3d8356257b3c2a9fdc9abe9ae9a22711e1115e62177a7a", size = 16747514, upload-time = "2025-10-28T12:36:43.865Z" },
+]
+
+[[package]]
 name = "pynvml"
 version = "12.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1387,6 +1400,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pennylane" },
     { name = "pufferlib" },
+    { name = "pynufft" },
     { name = "scienceplots" },
     { name = "seaborn" },
     { name = "tbparse" },
@@ -1404,6 +1418,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.3.1" },
     { name = "pennylane", specifier = ">=0.41.1" },
     { name = "pufferlib", specifier = ">=3.0.0" },
+    { name = "pynufft", specifier = ">=2025.2.1" },
     { name = "scienceplots", specifier = ">=2.1.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "tbparse", specifier = ">=0.0.9" },
