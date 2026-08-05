@@ -1,4 +1,4 @@
-# Code Repository for the Paper _"Entanglement Enhances Quantum Agent Performance in Reinforcement Learning"_
+# Code Repository for the Paper _"Quantum entanglement provides a competitive advantage in adversarial games"_
 
 This repository contains the code used in the paper [_"Quantum entanglement provides a competitive advantage in adversarial games"_](https://arxiv.org/abs/2603.10289v1) by _Peiyong Wang, Kieran Hymas_ and _James Quach_.
 
